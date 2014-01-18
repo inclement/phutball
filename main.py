@@ -7,8 +7,10 @@ from kivy.uix.image import Image
 
 from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
-                             BooleanProperty, ObjectProperty)
+                             BooleanProperty, ObjectProperty,
+                             DictProperty)
 from kivy.clock import Clock
+
 
 class Ball(Image):
     '''Widget representing the 'ball' piece.'''
@@ -16,6 +18,7 @@ class Ball(Image):
 
 class Man(Image):
     '''Widget representing the 'man' pieces.'''
+    coords = ListProperty([0, 0])
 
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
@@ -46,10 +49,40 @@ class Board(Widget):
     grid_points = ListProperty([])
 
     ball = ObjectProperty(None, allownone=True)
+    men = DictProperty({})
 
     def __init__(self, *args, **kwargs):
         super(Board, self).__init__(*args, **kwargs)
         Clock.schedule_once(self.initialise_ball, 0)
+
+    def add_man(self, coords):
+        '''Adds a man (a black piece) at the given coordinates.'''
+        coords = tuple(coords)
+        if coords in self.men or (coords[0] == self.ball.coords[0] and
+                                  coords[1] == self.ball.coords[1]):
+            return
+        man = Man(coords=coords)
+        self.men[coords] = man
+        man.pos = self.coords_to_pos(coords)
+        man.size = self.cell_size
+        self.add_widget(man)
+
+    def remove_man(self, coords):
+        '''Removes the man at the given coords, if one exists.'''
+        coords = tuple(coords)
+        if coords not in self.men:
+            return
+        man = self.men.pop(coords)
+        self.remove_widget(man)
+
+    def toggle_man(self, coords):
+        '''Toggles a man at the given coords.'''
+        coords = tuple(coords)
+        if coords in self.men:
+            self.remove_man(coords)
+        else:
+            self.add_man(coords)
+            
 
     def reposition_stones(self, *args):
         '''Checks the coords of any stones (ball/players), and repositions
@@ -58,12 +91,22 @@ class Board(Widget):
 
         if self.ball is not None:
             self.ball.pos = self.coords_to_pos(self.ball.coords)
-            print 'ball pos', self.ball.pos
+        for man_coords in self.men:
+            man = self.men[man_coords]
+            man.pos = self.coords_to_pos(man.coords)
+
+    def on_cell_size(self, *args):
+        cell_size = self.cell_size
+        if self.ball:
+            self.ball.size = self.cell_size
+        for man_coords in self.men:
+            man = self.men[man_coords]
+            man.size = self.cell_size
 
     def initialise_ball(self, *args):
         if self.ball is None:
             self.ball = Ball()
-            self.bind(cell_size=self.ball.setter('size'))
+            self.ball.size = self.cell_size
             self.add_widget(self.ball)
 
         centre_coords = map(int, Vector(self.grid)/2.0)
@@ -72,10 +115,7 @@ class Board(Widget):
 
     def on_touch_down(self, touch):
         coords = self.pos_to_coords(touch.pos)
-        print coords
-        # print self.coords_to_pos(coords)
-        # print 'ball pos', self.ball.pos
-        # print 'ball parent', self.ball.parent
+        self.toggle_man(coords)
 
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid
