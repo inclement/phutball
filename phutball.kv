@@ -1,3 +1,12 @@
+<Ball>:
+    allow_stretch: True
+    mipmap: True
+    source: 'stones/white_simple_100.png'
+
+<Man>:
+    allow_stretch: True
+    mipmap: True
+    source: 'stones/black_simple_100.png'
 
 <BoardContainer>:
     board: board
@@ -30,3 +39,9 @@
         Line:
             points: root.grid_points
             width: 1
+    Ball:
+        pos: (200, 200)
+        size: root.cell_size
+    Man:
+        pos: (200, 250)
+        size: root.cell_size

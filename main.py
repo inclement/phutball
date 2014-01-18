@@ -3,15 +3,17 @@ from kivy.vector import Vector
 
 from kivy.uix.widget import Widget
 from kivy.uix.anchorlayout import AnchorLayout
-from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.image import Image
 
 from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
                              BooleanProperty, ObjectProperty)
 
-class Ball(Widget):
+class Ball(Image):
     '''Widget representing the 'ball' piece.'''
-    pass
+
+class Man(Image):
+    '''Widget representing the 'man' pieces.'''
 
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
