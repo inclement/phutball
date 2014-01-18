@@ -8,9 +8,11 @@ from kivy.uix.image import Image
 from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
                              BooleanProperty, ObjectProperty)
+from kivy.clock import Clock
 
 class Ball(Image):
     '''Widget representing the 'ball' piece.'''
+    coords = ListProperty([0, 0])
 
 class Man(Image):
     '''Widget representing the 'man' pieces.'''
@@ -43,10 +45,37 @@ class Board(Widget):
 
     grid_points = ListProperty([])
 
+    ball = ObjectProperty(None, allownone=True)
+
+    def __init__(self, *args, **kwargs):
+        super(Board, self).__init__(*args, **kwargs)
+        Clock.schedule_once(self.initialise_ball, 0)
+
+    def reposition_stones(self, *args):
+        '''Checks the coords of any stones (ball/players), and repositions
+    them appropriately with respect to the board. Called on
+    resize/position.'''
+
+        if self.ball is not None:
+            self.ball.pos = self.coords_to_pos(self.ball.coords)
+            print 'ball pos', self.ball.pos
+
+    def initialise_ball(self, *args):
+        if self.ball is None:
+            self.ball = Ball()
+            self.bind(cell_size=self.ball.setter('size'))
+            self.add_widget(self.ball)
+
+        centre_coords = map(int, Vector(self.grid)/2.0)
+        self.ball.pos = self.coords_to_pos(centre_coords)
+        self.ball.coords = centre_coords
+
     def on_touch_down(self, touch):
         coords = self.pos_to_coords(touch.pos)
         print coords
-        print self.coords_to_pos(coords)
+        # print self.coords_to_pos(coords)
+        # print 'ball pos', self.ball.pos
+        # print 'ball parent', self.ball.parent
 
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid
@@ -65,7 +94,7 @@ class Board(Widget):
         '''Takes coords on the board grid, and converts to a screen
         position.'''
         cell_size = Vector(self.cell_size)
-        self_pos = Vector(self.pos) + Vector(cell_size) / 2.0
+        self_pos = Vector(self.pos)
         padding = Vector(self.padding)
         return self_pos + (padding + Vector(coords)) * cell_size
 
