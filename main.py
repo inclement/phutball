@@ -9,6 +9,9 @@ from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
                              BooleanProperty, ObjectProperty)
 
+class Ball(Widget):
+    '''Widget representing the 'ball' piece.'''
+    pass
 
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
@@ -38,9 +41,32 @@ class Board(Widget):
 
     grid_points = ListProperty([])
 
+    def on_touch_down(self, touch):
+        coords = self.pos_to_coords(touch.pos)
+        print coords
+        print self.coords_to_pos(coords)
+
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid
         position.'''
+        
+        pos = Vector(pos)
+        cell_size = Vector(self.cell_size)
+        self_pos = Vector(self.pos) + Vector(cell_size) / 2.0
+        padding = Vector(self.padding)
+        diff = pos - (self_pos + padding * cell_size)
+        number_of_steps = diff / cell_size
+
+        return map(round, number_of_steps)
+
+    def coords_to_pos(self, coords):
+        '''Takes coords on the board grid, and converts to a screen
+        position.'''
+        cell_size = Vector(self.cell_size)
+        self_pos = Vector(self.pos) + Vector(cell_size) / 2.0
+        padding = Vector(self.padding)
+        return self_pos + (padding + Vector(coords)) * cell_size
+
     
     def calculate_lines(self, *args):
         '''Calculates the points that should make up the board lines, and sets
