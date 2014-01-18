@@ -1,0 +1,32 @@
+
+<BoardContainer>:
+    board: board
+    anchor_x: 'center'
+    anchor_y: 'center'
+    aspect_ratio: float(self.height) / float(self.width)
+    Board:
+        id: board
+        size_hint: None, None
+        width: root.height / self.aspect_ratio if (self.portrait and self.aspect_ratio > root.aspect_ratio) else root.width
+        height: root.height if (self.portrait and self.aspect_ratio > root.aspect_ratio) else root.width * self.aspect_ratio
+        
+
+<Board>:
+    aspect_ratio: float(self.shape_y) / float(self.shape_x)
+    portrait: True if self.aspect_ratio > 1.0 else False
+    shape: (self.grid_x + 2*self.padding_x, self.grid_y + 2*self.padding_y)
+    cell_size: (self.width / self.shape_x, self.height / self.shape_y)
+    on_pos: self.calculate_lines()
+    on_size: self.calculate_lines()
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+            source: self.board_image
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            points: root.grid_points
+            width: 1
