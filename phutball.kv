@@ -1,3 +1,22 @@
+#:import Window kivy.core.window.Window
+
+<BoardInterface>:
+    orientation: 'vertical'
+    BoardContainer:
+        id: boardcontainer
+        size_hint_y: None if Window.height > 1.2*Window.width else 3
+        height: Window.width
+    BoxLayout:
+        Button:
+            text: 'Play man'
+            on_release: boardcontainer.board.touch_mode = 'play_man'
+        Button:
+            text: 'Move ball'
+            on_release: boardcontainer.board.touch_mode = 'move_ball'
+        Button:
+            text: 'Toggle man'
+            on_release: boardcontainer.board.touch_mode = 'toggle_man'
+
 <LegalMoveMarker>:
     canvas:
         Color:
@@ -5,8 +24,6 @@
         Ellipse:
             size: self.size
             pos: self.pos
-            
-    
 
 <Ball>:
     allow_stretch: True

@@ -5,20 +5,61 @@ from kivy.event import EventDispatcher
 from kivy.uix.widget import Widget
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.image import Image
+from kivy.uix.boxlayout import BoxLayout
 
 from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
                              BooleanProperty, ObjectProperty,
-                             DictProperty)
+                             DictProperty, OptionProperty)
 from kivy.clock import Clock
 
+def sign(n):
+    return 1 if n >= 0 else -1
+
+def coords_removed_on_step(start_coords, end_coords):
+    '''Returns a list of coordinates on the straight line between
+    start_coords and end_coords.'''
+    start_coords = Vector(start_coords)
+    end_coords = Vector(end_coords)
+    number_of_steps = max(map(abs,end_coords - start_coords))
+    direction = end_coords - start_coords
+    jump = Vector(map(int, map(round, direction / number_of_steps)))
+
+    removed_coords = []
+    current_coords = start_coords
+    for i in range(number_of_steps-1):
+        current_coords += jump
+        removed_coords.append(tuple(current_coords))
+    return removed_coords
+
+def removed_coords_from_steps(end_coord, steps):
+    '''For each step, gets a list of removed coordinates. Returns all
+    these lists.
+    '''
+    removed_coords = []
+    for i in range(len(steps)-1):
+        current_coords = steps[i]
+        next_coords = steps[i+1]
+        removed_coords.append(coords_removed_on_step(current_coords, next_coords))
+    removed_coords.append(steps[-1], end_coord)
+    return removed_coords
+
+def remove_coords_lists_from_set(coords_lists, coords_set):
+    for coords_segment in coords_list:
+        for coords in coords_segment:
+            coords = tuple(coords)
+            if coords in coords_set:
+                coords_set.remove(coords)
 
 directions = map(Vector, [[1, 0], [1, 1], [0, 1], [-1, 1],
                           [-1, 0], [-1, -1], [0, -1], [1, -1]])
-def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None, legal_moves=None):
+def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None,
+                    legal_moves=None, depth=1, maxdepth=10):
     '''Returns a dictionary of legal move coordinates, along with the
     paths to reach them, by recursively making all possible moves.
     '''
+    if depth > maxdepth:
+        return
     if previous_path is None:
         previous_path = []
     if legal_moves is None:
@@ -40,7 +81,8 @@ def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None,
             else:
                 legal_moves[tuple(adj_coords)].append(current_previous_path)
             get_legal_moves(new_legal_move, path_man_coords, shape,
-                            current_previous_path, legal_moves)
+                            current_previous_path, legal_moves,
+                            depth=depth+1, maxdepth=maxdepth)
             
             
     return legal_moves
@@ -59,20 +101,65 @@ class AbstractBoard(EventDispatcher):
         self.man_coords = set()
         self.ball_coords = (0, 0)
         self.shape = (15, 19)
+        self.legal_moves = {}
+
+        # Speculative attributes will hold data about the move the
+        # player is currently making, without disrupting the full
+        # logical state.
+        self.speculative_ball_coords = (0, 0)
+        self.speculative_man_coords = set()
+        self.speculative_legal_moves = {}
+        self.speculative_step_removals = []
 
         if 'shape' in kwargs:
             self.shape = kwargs['shape']
 
-    def get_valid_moves(self):
-        '''Returns a list of valid coordinates for the ball to move to.'''
-        
+    def check_for_win(self):
+        '''Checks if either player has won.'''
+        ball_coords = self.ball_coords
+        if ball_coords[1] <= 1:
+            return 'bottom'
+        elif ball_coords[1] >= self.shape[1]-2:
+            return 'top'
+        else:
+            return 'none'
 
+    def speculative_move_ball_to(self, coords):
+        '''Tries to move the ball to the given coordinates. Returns
+        appropriate instructions for how the board should change in
+        response.'''        
+        print 'Speculative move to', coords
+        coords = tuple(coords)
+        speculative_legal_moves = self.speculative_legal_moves
+        print 'speculative legal moves are', self.speculative_legal_moves
+        if coords not in speculative_legal_moves:
+            return None
+
+        possible_paths = self.speculative_legal_moves[coords]
+        if len(possible_paths) > 1:
+            short_paths = filter(lambda j: len(j) == 1, possible_paths)
+            if not short_paths:
+                return {'conflicting_paths': (coords, possible_paths)}
+            steps = short_paths[0]
+        else:
+            steps = possible_paths[0]
+
+        self.speculative_ball_coords = coords
+        newly_removed_coords = removed_coords_from_steps(coords, steps)
+        remove_coords_lists_from_set(newly_removed_coords, self.speculative_man_coords)
+        self.speculative_step_removals.extend(newly_removed_coords)
+        self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords, self.speculative_man_coords, self.shape)
+        return {'speculative_move', (coords, steps)}
+
+    def reset_speculation(self):
+        self.speculative_ball_coords = self.ball_coords
+        self.speculative_man_coords = self.man_coords.copy()
+        self.speculative_legal_moves = self.legal_moves
+                
     def reset(self, *args):
         self.man_coords = set()
         self.ball_coords = (0, 0)
-
-    def set_ball_coords(coords):
-        self.ball_coords = coords
+        self.reset_speculation()
 
     def add_man(self, coords):
         coords = tuple(coords)
@@ -95,9 +182,21 @@ class AbstractBoard(EventDispatcher):
         else:
             return self.add_man(coords)
 
-    def get_legal_moves(self):
-        return get_legal_moves(self.ball_coords, self.man_coords,
+    def play_man_at(self, coords):
+        '''Method for attempting to play a man piece. Adds the man, and
+        updates internal move state if necessary.
+        '''
+        instructions = self.add_man(coords)
+        if instructions:
+            self.update_legal_moves()
+            self.reset_speculation()
+        return instructions
+
+    def update_legal_moves(self):
+        moves = get_legal_moves(self.ball_coords, self.man_coords,
                                self.shape)
+        self.legal_moves = moves
+        return self.legal_moves
 
     def as_ascii(self, *args):
         '''Returns an ascii representation of the board.'''
@@ -128,6 +227,9 @@ class Man(Image):
 class LegalMoveMarker(Widget):
     '''Widget representing a possible legal move.'''
 
+class BoardInterface(BoxLayout):
+    '''The widget for a whole board interface, intended to take up the whole screen.'''
+
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
 
@@ -152,6 +254,8 @@ class Board(Widget):
     portrait = BooleanProperty()  # True if shape_x < shape_y
     aspect_ratio = NumericProperty()
 
+    player = OptionProperty('bottom', options=['top', 'bottom'])
+
     board_image = StringProperty('boards/edphoto_section_light.png')
 
     grid_points = ListProperty([])
@@ -165,10 +269,28 @@ class Board(Widget):
 
     abstractboard = ObjectProperty()
 
+    touch_mode = OptionProperty('play_man', options=['play_man',
+                                                     'move_ball',
+                                                     'toggle_man',
+                                                     'dormant'])
+    show_legal_moves = BooleanProperty(True)
+
     def __init__(self, *args, **kwargs):
         super(Board, self).__init__(*args, **kwargs)
         Clock.schedule_once(self.initialise_ball, 0)
         self.abstractboard = AbstractBoard(shape=self.grid)
+        self.abstractboard.reset()
+
+    def advance_player(self):
+        if self.player == 'bottom':
+            self.player = 'top'
+        else:
+            self.player = 'bottom'
+
+    def check_for_win(self):
+        '''Checks if either player has won, i.e. that the ball is in one of
+        the goals.'''
+        return self.abstractboard.check_for_win()
 
     def follow_instructions(self, instructions):
         '''Takes instructions from an AbstractBoard and uses them to update
@@ -275,17 +397,36 @@ class Board(Widget):
         centre_coords = map(int, Vector(self.grid)/2.0)
         self.ball.pos = self.coords_to_pos(centre_coords)
         self.ball.coords = centre_coords
+
         self.abstractboard.ball_coords = centre_coords
+        self.abstractboard.speculative_ball_coords = centre_coords
 
     def on_touch_down(self, touch):
         coords = self.pos_to_coords(touch.pos)
-        self.follow_instructions(self.abstractboard.toggle_man(coords))
+        self.do_move_at(coords)
+
+    def do_move_at(self, coords):
+        coords = tuple(coords)
+        mode = self.touch_mode
+        if mode == 'dormant':
+            return
+        elif mode == 'toggle_man':
+            self.follow_instructions(self.abstractboard.toggle_man(coords))
+        elif mode == 'play_man':
+            instructions = self.abstractboard.play_man_at(coords)
+            self.follow_instructions(instructions)
+            if instructions is not None:
+                self.advance_player()
+        elif mode == 'move_ball':
+            print self.abstractboard.speculative_move_ball_to(coords)
+
         self.clear_transient_ui_elements()
-        self.display_legal_moves()
-        print self.abstractboard.as_ascii()
+        if self.show_legal_moves:
+            self.display_legal_moves()
+        print 'winner is', self.check_for_win()
 
     def display_legal_moves(self):
-        legal_moves = self.abstractboard.get_legal_moves()
+        legal_moves = self.abstractboard.legal_moves
         for coords in legal_moves:
             self.add_legal_move_marker(coords)
 
@@ -359,7 +500,7 @@ class Board(Widget):
 
 class PhutballApp(App):
     def build(self):
-        return BoardContainer()
+        return BoardInterface()
 
 if __name__ == "__main__":
     PhutballApp().run()
