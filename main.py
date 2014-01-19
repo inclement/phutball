@@ -12,6 +12,45 @@ from kivy.properties import (NumericProperty, ListProperty,
                              DictProperty)
 from kivy.clock import Clock
 
+
+directions = map(Vector, [[1, 0], [1, 1], [0, 1], [-1, 1],
+                          [-1, 0], [-1, -1], [0, -1], [1, -1]])
+def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None, legal_moves=None):
+    '''Returns a dictionary of legal move coordinates, along with the
+    paths to reach them, by recursively making all possible moves.
+    '''
+    if previous_path is None:
+        previous_path = []
+    if legal_moves is None:
+        legal_moves = {} 
+    current_previous_path = previous_path[:]
+    current_previous_path.append(ball_coords)
+
+    ball_coords = Vector(ball_coords)
+    for direction in directions:
+        adj_coords = ball_coords + direction
+        if tuple(adj_coords) in man_coords:
+            path_man_coords = man_coords.copy()
+            while tuple(adj_coords) in path_man_coords:
+                path_man_coords.remove(tuple(adj_coords))
+                adj_coords += direction            
+            new_legal_move = tuple(adj_coords)
+            if new_legal_move not in legal_moves:
+                legal_moves[tuple(adj_coords)] = [current_previous_path]
+            else:
+                legal_moves[tuple(adj_coords)].append(current_previous_path)
+            get_legal_moves(new_legal_move, path_man_coords, shape,
+                            current_previous_path, legal_moves)
+            
+            
+    return legal_moves
+    
+def coords_in_grid(coords, shape):
+    x, y = coords
+    if (x < 0 or y < 0 or x >= shape[0] or y >= shape[1]):
+        return False
+    return True
+
 class AbstractBoard(EventDispatcher):
     '''A class that keeps track of the board logic; piece positions, legal
     moves etc.'''
@@ -23,6 +62,10 @@ class AbstractBoard(EventDispatcher):
 
         if 'shape' in kwargs:
             self.shape = kwargs['shape']
+
+    def get_valid_moves(self):
+        '''Returns a list of valid coordinates for the ball to move to.'''
+        
 
     def reset(self, *args):
         self.man_coords = set()
@@ -52,6 +95,10 @@ class AbstractBoard(EventDispatcher):
         else:
             return self.add_man(coords)
 
+    def get_legal_moves(self):
+        return get_legal_moves(self.ball_coords, self.man_coords,
+                               self.shape)
+
     def as_ascii(self, *args):
         '''Returns an ascii representation of the board.'''
         string_elements = []
@@ -77,6 +124,9 @@ class Ball(Image):
 class Man(Image):
     '''Widget representing the 'man' pieces.'''
     coords = ListProperty([0, 0])
+
+class LegalMoveMarker(Widget):
+    '''Widget representing a possible legal move.'''
 
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
@@ -105,9 +155,13 @@ class Board(Widget):
     board_image = StringProperty('boards/edphoto_section_light.png')
 
     grid_points = ListProperty([])
+    goal_rectangle_size = ListProperty([0, 0])
+    top_rectangle_pos = ListProperty([0, 0])
+    bottom_rectangle_pos = ListProperty([0, 0])
 
     ball = ObjectProperty(None, allownone=True)
     men = DictProperty({})
+    legal_move_markers = DictProperty({})
 
     abstractboard = ObjectProperty()
 
@@ -159,18 +213,50 @@ class Board(Widget):
             self.remove_man(coords)
         else:
             self.add_man(coords)
-            
 
-    def reposition_stones(self, *args):
-        '''Checks the coords of any stones (ball/players), and repositions
-    them appropriately with respect to the board. Called on
-    resize/position.'''
+    def add_legal_move_marker(self, coords):
+        '''Toggles a LegalMoveMarker at the given coords.'''
+        coords = tuple(coords)
+        if coords in self.legal_move_markers:
+            return
+        marker = LegalMoveMarker(pos=self.coords_to_pos(coords),
+                                 size=self.cell_size)
+        self.legal_move_markers[coords] = marker
+        self.add_widget(marker)
 
+    def remove_legal_move_marker(self, coords):
+        '''Removes any LegalMoveMarker at the given coords.'''
+        coords = tuple(coords)
+        if coords not in self.legal_move_markers:
+            return
+        marker = self.legal_move_markers.pop(coords)
+        self.remove_widget(marker)
+
+    def clear_legal_move_markers(self):
+        for marker_coords in self.legal_move_markers.keys():
+            marker = self.legal_move_markers.pop(marker_coords)
+            self.remove_widget(marker)
+
+    def clear_transient_ui_elements(self, *args):
+        '''Removes any transient ui elements, e.g. LegalMoveMarkers.'''
+        self.clear_legal_move_markers()
+
+    def reposition_ui_elements(self, *args):
+        '''Checks the coords of any ui elements (stones , rectangles etc.),
+        and repositions them appropriately with respect to the
+        board. Called on resize/position.
+
+        '''
         if self.ball is not None:
             self.ball.pos = self.coords_to_pos(self.ball.coords)
-        for man_coords in self.men:
-            man = self.men[man_coords]
+        for man_coords, man in self.men.iteritems():
             man.pos = self.coords_to_pos(man.coords)
+        for marker_coords, marker in self.legal_move_markers.iteritems():
+            marker.pos = self.coords_to_pos(marker.coords)
+        self.goal_rectangle_size = Vector([self.grid[0], 2]) * Vector(self.cell_size)
+        self.top_rectangle_pos = self.coords_to_pos((0, self.grid[1]-2))
+        self.bottom_rectangle_pos = self.coords_to_pos((0, 0))
+        
 
     def on_cell_size(self, *args):
         cell_size = self.cell_size
@@ -194,7 +280,14 @@ class Board(Widget):
     def on_touch_down(self, touch):
         coords = self.pos_to_coords(touch.pos)
         self.follow_instructions(self.abstractboard.toggle_man(coords))
+        self.clear_transient_ui_elements()
+        self.display_legal_moves()
         print self.abstractboard.as_ascii()
+
+    def display_legal_moves(self):
+        legal_moves = self.abstractboard.get_legal_moves()
+        for coords in legal_moves:
+            self.add_legal_move_marker(coords)
 
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid

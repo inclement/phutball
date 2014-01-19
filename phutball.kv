@@ -1,13 +1,17 @@
+<LegalMoveMarker>:
+    canvas:
+        Color:
+            rgba: 0, 0, 1, 0.1
+        Ellipse:
+            size: self.size
+            pos: self.pos
+            
+    
+
 <Ball>:
     allow_stretch: True
     mipmap: True
     source: 'stones/white_simple_100.png'
-    # canvas:
-    #     Color:
-    #         rgba: 1, 0, 0, 0.5
-    #     Rectangle:
-    #         pos: self.pos
-    #         size: self.size
 
 <Man>:
     allow_stretch: True
@@ -31,8 +35,8 @@
     portrait: True if self.aspect_ratio > 1.0 else False
     shape: (self.grid_x + 2*self.padding_x, self.grid_y + 2*self.padding_y)
     cell_size: (float(self.width) / self.shape_x, float(self.height) / self.shape_y)
-    on_pos: self.calculate_lines(); self.reposition_stones()
-    on_size: self.calculate_lines(); self.reposition_stones()
+    on_pos: self.calculate_lines(); self.reposition_ui_elements()
+    on_size: self.calculate_lines(); self.reposition_ui_elements()
     on_grid: self.abstractboard.shape = self.grid
     canvas:
         Color:
@@ -46,3 +50,13 @@
         Line:
             points: root.grid_points
             width: 1
+        Color:
+            rgba: 1, 0, 0, 0.1
+        Rectangle:
+            size: root.goal_rectangle_size
+            pos: root.top_rectangle_pos
+        Color:
+            rgba: 0, 1, 0, 0.1
+        Rectangle:
+            size: root.goal_rectangle_size
+            pos: root.bottom_rectangle_pos
