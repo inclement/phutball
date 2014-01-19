@@ -33,6 +33,7 @@
     cell_size: (float(self.width) / self.shape_x, float(self.height) / self.shape_y)
     on_pos: self.calculate_lines(); self.reposition_stones()
     on_size: self.calculate_lines(); self.reposition_stones()
+    on_grid: self.abstractboard.shape = self.grid
     canvas:
         Color:
             rgba: 1, 1, 1, 1

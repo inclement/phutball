@@ -1,5 +1,6 @@
 from kivy.app import App
 from kivy.vector import Vector
+from kivy.event import EventDispatcher
 
 from kivy.uix.widget import Widget
 from kivy.uix.anchorlayout import AnchorLayout
@@ -11,6 +12,63 @@ from kivy.properties import (NumericProperty, ListProperty,
                              DictProperty)
 from kivy.clock import Clock
 
+class AbstractBoard(EventDispatcher):
+    '''A class that keeps track of the board logic; piece positions, legal
+    moves etc.'''
+    def __init__(self, *args, **kwargs):
+        super(AbstractBoard, self).__init__(*args, **kwargs)
+        self.man_coords = set()
+        self.ball_coords = (0, 0)
+        self.shape = (15, 19)
+
+        if 'shape' in kwargs:
+            self.shape = kwargs['shape']
+
+    def reset(self, *args):
+        self.man_coords = set()
+        self.ball_coords = (0, 0)
+
+    def set_ball_coords(coords):
+        self.ball_coords = coords
+
+    def add_man(self, coords):
+        coords = tuple(coords)
+        if coords in self.man_coords:
+            return None
+        self.man_coords.add(coords)
+        return {'add': [coords]}
+
+    def remove_man(self, coords):
+        coords = tuple(coords)
+        if coords not in self.man_coords:
+            return None
+        self.man_coords.remove(coords)
+        return {'remove': [coords]}
+
+    def toggle_man(self, coords):
+        coords = tuple(coords)
+        if coords in self.man_coords:
+            return self.remove_man(coords)
+        else:
+            return self.add_man(coords)
+
+    def as_ascii(self, *args):
+        '''Returns an ascii representation of the board.'''
+        string_elements = []
+        for y in range(self.shape[1])[::-1]:
+            for x in range(self.shape[0]):
+                coords = (x, y)
+                if (coords[0] == self.ball_coords[0] and
+                    coords[1] == self.ball_coords[1]):
+                    string_elements.append('O')
+                elif coords in self.man_coords:
+                    string_elements.append('X')
+                else:
+                    string_elements.append('.')
+            string_elements.append('\n')
+        return ''.join(string_elements)
+                    
+    
 
 class Ball(Image):
     '''Widget representing the 'ball' piece.'''
@@ -51,9 +109,28 @@ class Board(Widget):
     ball = ObjectProperty(None, allownone=True)
     men = DictProperty({})
 
+    abstractboard = ObjectProperty()
+
     def __init__(self, *args, **kwargs):
         super(Board, self).__init__(*args, **kwargs)
         Clock.schedule_once(self.initialise_ball, 0)
+        self.abstractboard = AbstractBoard(shape=self.grid)
+
+    def follow_instructions(self, instructions):
+        '''Takes instructions from an AbstractBoard and uses them to update
+        the gui.'''
+
+        if instructions is None:
+            return  # Nothing changes
+
+        if 'add' in instructions:
+            add_coords = instructions['add']
+            for coords in add_coords:
+                self.add_man(coords)
+        if 'remove' in instructions:
+            remove_coords = instructions['remove']
+            for coords in remove_coords:
+                self.remove_man(coords)
 
     def add_man(self, coords):
         '''Adds a man (a black piece) at the given coordinates.'''
@@ -112,10 +189,12 @@ class Board(Widget):
         centre_coords = map(int, Vector(self.grid)/2.0)
         self.ball.pos = self.coords_to_pos(centre_coords)
         self.ball.coords = centre_coords
+        self.abstractboard.ball_coords = centre_coords
 
     def on_touch_down(self, touch):
         coords = self.pos_to_coords(touch.pos)
-        self.toggle_man(coords)
+        self.follow_instructions(self.abstractboard.toggle_man(coords))
+        print self.abstractboard.as_ascii()
 
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid
