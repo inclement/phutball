@@ -1,6 +1,7 @@
 from kivy.app import App
 from kivy.vector import Vector
 from kivy.event import EventDispatcher
+from kivy.animation import Animation
 
 from kivy.uix.widget import Widget
 from kivy.uix.anchorlayout import AnchorLayout
@@ -16,12 +17,26 @@ from kivy.clock import Clock
 def sign(n):
     return 1 if n >= 0 else -1
 
+def get_speculative_move_identifiers(coords, steps):
+    '''Returns a list of speculative move identifiers from end coords
+    (coords) and a list of steps. Returns a list of 4-tuples containing
+    the identifiers.
+    '''
+    identifiers = []
+    for i in range(len(steps)-1):
+        cur = steps[i]
+        nex = steps[i+1]
+        identifiers.append((cur[0], cur[1], nex[0], nex[1]))
+    identifiers.append((steps[-1][0], steps[-1][1], coords[0], coords[1]))
+    return identifiers
+
 def coords_removed_on_step(start_coords, end_coords):
+
     '''Returns a list of coordinates on the straight line between
     start_coords and end_coords.'''
     start_coords = Vector(start_coords)
     end_coords = Vector(end_coords)
-    number_of_steps = max(map(abs,end_coords - start_coords))
+    number_of_steps = int(round(max(map(abs,end_coords - start_coords))))
     direction = end_coords - start_coords
     jump = Vector(map(int, map(round, direction / number_of_steps)))
 
@@ -41,11 +56,11 @@ def removed_coords_from_steps(end_coord, steps):
         current_coords = steps[i]
         next_coords = steps[i+1]
         removed_coords.append(coords_removed_on_step(current_coords, next_coords))
-    removed_coords.append(steps[-1], end_coord)
+    removed_coords.append(coords_removed_on_step(steps[-1], end_coord))
     return removed_coords
 
 def remove_coords_lists_from_set(coords_lists, coords_set):
-    for coords_segment in coords_list:
+    for coords_segment in coords_lists:
         for coords in coords_segment:
             coords = tuple(coords)
             if coords in coords_set:
@@ -110,6 +125,7 @@ class AbstractBoard(EventDispatcher):
         self.speculative_man_coords = set()
         self.speculative_legal_moves = {}
         self.speculative_step_removals = []
+        self.speculative_steps = []
 
         if 'shape' in kwargs:
             self.shape = kwargs['shape']
@@ -131,7 +147,6 @@ class AbstractBoard(EventDispatcher):
         print 'Speculative move to', coords
         coords = tuple(coords)
         speculative_legal_moves = self.speculative_legal_moves
-        print 'speculative legal moves are', self.speculative_legal_moves
         if coords not in speculative_legal_moves:
             return None
 
@@ -148,13 +163,22 @@ class AbstractBoard(EventDispatcher):
         newly_removed_coords = removed_coords_from_steps(coords, steps)
         remove_coords_lists_from_set(newly_removed_coords, self.speculative_man_coords)
         self.speculative_step_removals.extend(newly_removed_coords)
-        self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords, self.speculative_man_coords, self.shape)
-        return {'speculative_move', (coords, steps)}
+        self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
+                                                       self.speculative_man_coords,
+                                                       self.shape)
+        self.speculative_steps.extend(map(tuple, steps))
+
+        print 'did speculative movement'
+        print self.as_ascii(speculative=True)
+        print 'coords, steps are', coords, steps
+        return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
 
     def reset_speculation(self):
         self.speculative_ball_coords = self.ball_coords
         self.speculative_man_coords = self.man_coords.copy()
         self.speculative_legal_moves = self.legal_moves
+        self.speculative_step_removals = []
+        self.speculative_steps = []
                 
     def reset(self, *args):
         self.man_coords = set()
@@ -178,9 +202,11 @@ class AbstractBoard(EventDispatcher):
     def toggle_man(self, coords):
         coords = tuple(coords)
         if coords in self.man_coords:
-            return self.remove_man(coords)
+            instructions = self.remove_man(coords)
         else:
-            return self.add_man(coords)
+            instructions = self.add_man(coords)
+        self.update_legal_moves()
+        return instructions
 
     def play_man_at(self, coords):
         '''Method for attempting to play a man piece. Adds the man, and
@@ -198,24 +224,40 @@ class AbstractBoard(EventDispatcher):
         self.legal_moves = moves
         return self.legal_moves
 
-    def as_ascii(self, *args):
+    def as_ascii(self, speculative=False, *args):
         '''Returns an ascii representation of the board.'''
         string_elements = []
+        if not speculative:
+            ball_coords = self.ball_coords
+            man_coords = self.man_coords
+        else:
+            ball_coords = self.speculative_ball_coords
+            man_coords = self.speculative_man_coords
         for y in range(self.shape[1])[::-1]:
             for x in range(self.shape[0]):
                 coords = (x, y)
-                if (coords[0] == self.ball_coords[0] and
-                    coords[1] == self.ball_coords[1]):
+                if (coords[0] == ball_coords[0] and
+                    coords[1] == ball_coords[1]):
                     string_elements.append('O')
-                elif coords in self.man_coords:
+                elif coords in man_coords:
                     string_elements.append('X')
                 else:
                     string_elements.append('.')
             string_elements.append('\n')
         return ''.join(string_elements)
-                    
-    
 
+class ConflictingSegmentMarker(Widget):
+    '''Marker that draws a red line between two coordinates, with an
+    animation making the line fade to nothing and be removed.'''
+    points = ListProperty([])
+
+class SpeculativeSegmentMarker(Widget):
+    '''Marker that draws a line denoting a speculative movement.'''
+    start_coords = ListProperty([0, 0])
+    end_coords = ListProperty([0, 0])
+    start_pos = ListProperty([0, 0])
+    end_pos = ListProperty([0, 0])
+                    
 class Ball(Image):
     '''Widget representing the 'ball' piece.'''
     coords = ListProperty([0, 0])
@@ -226,6 +268,7 @@ class Man(Image):
 
 class LegalMoveMarker(Widget):
     '''Widget representing a possible legal move.'''
+    coords = ListProperty([0, 0])
 
 class BoardInterface(BoxLayout):
     '''The widget for a whole board interface, intended to take up the whole screen.'''
@@ -266,6 +309,7 @@ class Board(Widget):
     ball = ObjectProperty(None, allownone=True)
     men = DictProperty({})
     legal_move_markers = DictProperty({})
+    speculative_segment_markers = DictProperty({})
 
     abstractboard = ObjectProperty()
 
@@ -307,6 +351,77 @@ class Board(Widget):
             remove_coords = instructions['remove']
             for coords in remove_coords:
                 self.remove_man(coords)
+        if 'speculative_marker' in instructions:
+            speculative_markers = instructions['speculative_marker']
+            self.sync_speculative_segment_markers(speculative_markers)
+        if 'conflicting_paths' in instructions:
+            conflicting_markers = instructions['conflicting_paths']
+            self.draw_conflicting_markers(conflicting_markers)
+
+    def draw_conflicting_markers(self, components):
+        end_coords, paths = components
+        end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+        lines = []
+        for path in paths:
+            path = [Vector(self.coords_to_pos(coords)) + Vector(self.cell_size)/2.
+                    for coords in path]
+            points = []
+            for entry in path:
+                points.append(entry[0])
+                points.append(entry[1])
+            points.append(end_pos[0])
+            points.append(end_pos[1])
+            lines.append(points)
+
+        anim = Animation(opacity=0, duration=0.75, t='out_quad')
+        for line in lines:
+            marker = ConflictingSegmentMarker(points=line)
+            self.add_widget(marker)
+            anim.start(marker)
+            anim.bind(on_complete=self.remove_widget_from_anim)
+
+    def remove_widget_from_anim(self, animation, widget):
+        self.remove_widget(widget)
+            
+
+    def sync_speculative_segment_markers(self, new_markers):
+        existing_markers = self.speculative_segment_markers
+        print 'SYNCING', existing_markers.keys(), new_markers
+        for identifier in new_markers:
+            if identifier not in existing_markers:
+                print identifier, ' is not in existing markers'
+                self.add_speculative_segment_marker(identifier)
+        for identifier in existing_markers.keys():
+            if identifier not in new_markers:
+                print identifier, 'is not in new_markers'
+                self.remove_speculative_segment_marker(identifier)
+        print 'SYNCED', self.speculative_segment_markers.keys(), new_markers
+
+    def add_speculative_segment_marker(self, identifier):
+        if identifier in self.speculative_segment_markers:
+            return
+        start_coords = tuple(identifier[:2])
+        end_coords = tuple(identifier[2:])
+        start_pos = Vector(self.coords_to_pos(start_coords)) + Vector(self.cell_size)/2.
+        end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+        marker = SpeculativeSegmentMarker(start_coords=start_coords,
+                                          end_coords=end_coords,
+                                          start_pos=start_pos,
+                                          end_pos=end_pos)
+        self.add_widget(marker)
+        self.speculative_segment_markers[identifier] = marker
+
+    def remove_speculative_segment_marker(self, identifier):
+        print 'REMOVING MARKER', identifier
+        if identifier not in self.speculative_segment_markers:
+            return
+        marker = self.speculative_segment_markers.pop(identifier)
+        self.remove_widget(marker)
+        print self.speculative_segment_markers
+
+    def clear_speculative_segment_markers(self):
+        for identifier in self.speculative_segment_markers.keys():
+            self.remove_speculative_segment_marker(identifier)
 
     def add_man(self, coords):
         '''Adds a man (a black piece) at the given coordinates.'''
@@ -342,7 +457,8 @@ class Board(Widget):
         if coords in self.legal_move_markers:
             return
         marker = LegalMoveMarker(pos=self.coords_to_pos(coords),
-                                 size=self.cell_size)
+                                 size=self.cell_size,
+                                 coords=coords)
         self.legal_move_markers[coords] = marker
         self.add_widget(marker)
 
@@ -362,6 +478,7 @@ class Board(Widget):
     def clear_transient_ui_elements(self, *args):
         '''Removes any transient ui elements, e.g. LegalMoveMarkers.'''
         self.clear_legal_move_markers()
+        self.clear_speculative_segment_markers()
 
     def reposition_ui_elements(self, *args):
         '''Checks the coords of any ui elements (stones , rectangles etc.),
@@ -371,13 +488,25 @@ class Board(Widget):
         '''
         if self.ball is not None:
             self.ball.pos = self.coords_to_pos(self.ball.coords)
+            self.ball.size = self.cell_size
         for man_coords, man in self.men.iteritems():
             man.pos = self.coords_to_pos(man.coords)
+            man.size = self.cell_size
         for marker_coords, marker in self.legal_move_markers.iteritems():
             marker.pos = self.coords_to_pos(marker.coords)
+            marker.size = self.cell_size
         self.goal_rectangle_size = Vector([self.grid[0], 2]) * Vector(self.cell_size)
         self.top_rectangle_pos = self.coords_to_pos((0, self.grid[1]-2))
         self.bottom_rectangle_pos = self.coords_to_pos((0, 0))
+
+        cell_size = self.cell_size
+        for marker_coords, marker in self.speculative_segment_markers.iteritems():
+            start_coords = marker.start_coords
+            end_coords = marker.end_coords
+            start_pos = Vector(self.coords_to_pos(start_coords)) + Vector(self.cell_size)/2.
+            end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+            marker.start_pos = start_pos
+            marker_end_pos = end_pos
         
 
     def on_cell_size(self, *args):
@@ -387,6 +516,15 @@ class Board(Widget):
         for man_coords in self.men:
             man = self.men[man_coords]
             man.size = self.cell_size
+        for marker_coords, marker in self.legal_move_markers.iteritems():
+            marker.size = self.cell_size
+        for marker_coords, marker in self.speculative_segment_markers.iteritems():
+            start_coords = marker.start_coords
+            end_coords = marker.end_coords
+            start_pos = Vector(self.coords_to_pos(start_coords)) + Vector(self.cell_size)/2.
+            end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+            marker.start_pos = start_pos
+            marker_end_pos = end_pos
 
     def initialise_ball(self, *args):
         if self.ball is None:
@@ -417,16 +555,19 @@ class Board(Widget):
             self.follow_instructions(instructions)
             if instructions is not None:
                 self.advance_player()
+            self.clear_speculative_segment_markers()
         elif mode == 'move_ball':
-            print self.abstractboard.speculative_move_ball_to(coords)
+            instructions = self.abstractboard.speculative_move_ball_to(coords)
+            self.follow_instructions(instructions)
+            print 'move instructions are', instructions, self.speculative_segment_markers
 
-        self.clear_transient_ui_elements()
+        self.clear_legal_move_markers()
         if self.show_legal_moves:
             self.display_legal_moves()
         print 'winner is', self.check_for_win()
 
     def display_legal_moves(self):
-        legal_moves = self.abstractboard.legal_moves
+        legal_moves = self.abstractboard.speculative_legal_moves
         for coords in legal_moves:
             self.add_legal_move_marker(coords)
 
@@ -441,7 +582,7 @@ class Board(Widget):
         diff = pos - (self_pos + padding * cell_size)
         number_of_steps = diff / cell_size
 
-        return map(round, number_of_steps)
+        return map(int, map(round, number_of_steps))
 
     def coords_to_pos(self, coords):
         '''Takes coords on the board grid, and converts to a screen

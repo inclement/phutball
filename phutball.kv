@@ -1,5 +1,21 @@
 #:import Window kivy.core.window.Window
 
+<ConflictingSegmentMarker>:
+    canvas:
+        Color:
+            rgba: 0.9, 0.1, 0.1, 1
+        Line:
+            points: root.points
+            width: 2
+
+<SpeculativeSegmentMarker>:
+    canvas:
+        Color:
+            rgba: 0.1, 0.9, 0.1, 1.0
+        Line:
+            points: [root.start_pos[0], root.start_pos[1], root.end_pos[0], root.end_pos[1]]
+            width: 2
+
 <BoardInterface>:
     orientation: 'vertical'
     BoardContainer:
