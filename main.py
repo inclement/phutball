@@ -27,7 +27,8 @@ def get_speculative_move_identifiers(coords, steps):
         cur = steps[i]
         nex = steps[i+1]
         identifiers.append((cur[0], cur[1], nex[0], nex[1]))
-    identifiers.append((steps[-1][0], steps[-1][1], coords[0], coords[1]))
+    if len(steps) > 0:
+        identifiers.append((steps[-1][0], steps[-1][1], coords[0], coords[1]))
     return identifiers
 
 def coords_removed_on_step(start_coords, end_coords):
@@ -65,6 +66,13 @@ def remove_coords_lists_from_set(coords_lists, coords_set):
             coords = tuple(coords)
             if coords in coords_set:
                 coords_set.remove(coords)
+
+def add_coords_lists_to_set(coords_lists, coords_set):
+    for coords_segment in coords_lists:
+        for coords in coords_segment:
+            coords = tuple(coords)
+            if coords not in coords_set:
+                coords_set.add(coords)
 
 directions = map(Vector, [[1, 0], [1, 1], [0, 1], [-1, 1],
                           [-1, 0], [-1, -1], [0, -1], [1, -1]])
@@ -144,33 +152,39 @@ class AbstractBoard(EventDispatcher):
         '''Tries to move the ball to the given coordinates. Returns
         appropriate instructions for how the board should change in
         response.'''        
-        print 'Speculative move to', coords
         coords = tuple(coords)
         speculative_legal_moves = self.speculative_legal_moves
-        if coords not in speculative_legal_moves:
-            return None
 
-        possible_paths = self.speculative_legal_moves[coords]
-        if len(possible_paths) > 1:
-            short_paths = filter(lambda j: len(j) == 1, possible_paths)
-            if not short_paths:
-                return {'conflicting_paths': (coords, possible_paths)}
-            steps = short_paths[0]
-        else:
-            steps = possible_paths[0]
+        if coords in self.speculative_legal_moves:
+            possible_paths = self.speculative_legal_moves[coords]
+            if len(possible_paths) > 1:
+                short_paths = filter(lambda j: len(j) == 1, possible_paths)
+                if not short_paths:
+                    return {'conflicting_paths': (coords, possible_paths)}
+                steps = short_paths[0]
+            else:
+                steps = possible_paths[0]
 
-        self.speculative_ball_coords = coords
-        newly_removed_coords = removed_coords_from_steps(coords, steps)
-        remove_coords_lists_from_set(newly_removed_coords, self.speculative_man_coords)
-        self.speculative_step_removals.extend(newly_removed_coords)
-        self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
-                                                       self.speculative_man_coords,
-                                                       self.shape)
-        self.speculative_steps.extend(map(tuple, steps))
+            self.speculative_ball_coords = coords
+            newly_removed_coords = removed_coords_from_steps(coords, steps)
+            remove_coords_lists_from_set(newly_removed_coords, self.speculative_man_coords)
+            self.speculative_step_removals.extend(newly_removed_coords)
+            self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
+                                                           self.speculative_man_coords,
+                                                           self.shape)
+            self.speculative_steps.extend(map(tuple, steps))
 
-        print 'did speculative movement'
-        print self.as_ascii(speculative=True)
-        print 'coords, steps are', coords, steps
+        if coords in self.speculative_steps:
+            index = self.speculative_steps.index(coords)
+            added_stones = self.speculative_step_removals[index:]
+            self.speculative_ball_coords = coords
+            self.speculative_steps = self.speculative_steps[:index]
+            self.speculative_step_removals = self.speculative_step_removals[:index]
+            add_coords_lists_to_set(added_stones, self.speculative_man_coords)
+            self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
+                                                           self.speculative_man_coords,
+                                                           self.shape)
+
         return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
 
     def reset_speculation(self):
@@ -325,6 +339,13 @@ class Board(Widget):
         self.abstractboard = AbstractBoard(shape=self.grid)
         self.abstractboard.reset()
 
+    def on_touch_mode(self, *args):
+        mode = self.touch_mode
+        if mode == 'play_man':
+            self.abstractboard.reset_speculation()
+            self.clear_transient_ui_elements()
+            self.display_legal_moves()
+
     def advance_player(self):
         if self.player == 'bottom':
             self.player = 'top'
@@ -386,16 +407,12 @@ class Board(Widget):
 
     def sync_speculative_segment_markers(self, new_markers):
         existing_markers = self.speculative_segment_markers
-        print 'SYNCING', existing_markers.keys(), new_markers
         for identifier in new_markers:
             if identifier not in existing_markers:
-                print identifier, ' is not in existing markers'
                 self.add_speculative_segment_marker(identifier)
         for identifier in existing_markers.keys():
             if identifier not in new_markers:
-                print identifier, 'is not in new_markers'
                 self.remove_speculative_segment_marker(identifier)
-        print 'SYNCED', self.speculative_segment_markers.keys(), new_markers
 
     def add_speculative_segment_marker(self, identifier):
         if identifier in self.speculative_segment_markers:
@@ -412,12 +429,10 @@ class Board(Widget):
         self.speculative_segment_markers[identifier] = marker
 
     def remove_speculative_segment_marker(self, identifier):
-        print 'REMOVING MARKER', identifier
         if identifier not in self.speculative_segment_markers:
             return
         marker = self.speculative_segment_markers.pop(identifier)
         self.remove_widget(marker)
-        print self.speculative_segment_markers
 
     def clear_speculative_segment_markers(self):
         for identifier in self.speculative_segment_markers.keys():
@@ -542,6 +557,7 @@ class Board(Widget):
     def on_touch_down(self, touch):
         coords = self.pos_to_coords(touch.pos)
         self.do_move_at(coords)
+        print self.abstractboard.as_ascii(True)
 
     def do_move_at(self, coords):
         coords = tuple(coords)
@@ -559,12 +575,10 @@ class Board(Widget):
         elif mode == 'move_ball':
             instructions = self.abstractboard.speculative_move_ball_to(coords)
             self.follow_instructions(instructions)
-            print 'move instructions are', instructions, self.speculative_segment_markers
 
         self.clear_legal_move_markers()
         if self.show_legal_moves:
             self.display_legal_moves()
-        print 'winner is', self.check_for_win()
 
     def display_legal_moves(self):
         legal_moves = self.abstractboard.speculative_legal_moves
