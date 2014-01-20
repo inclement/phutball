@@ -155,6 +155,8 @@ class AbstractBoard(EventDispatcher):
         coords = tuple(coords)
         speculative_legal_moves = self.speculative_legal_moves
 
+        print 'speculative move to', coords
+
         if coords in self.speculative_legal_moves:
             possible_paths = self.speculative_legal_moves[coords]
             if len(possible_paths) > 1:
@@ -173,6 +175,7 @@ class AbstractBoard(EventDispatcher):
                                                            self.speculative_man_coords,
                                                            self.shape)
             self.speculative_steps.extend(map(tuple, steps))
+            return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
 
         if coords in self.speculative_steps:
             index = self.speculative_steps.index(coords)
@@ -184,8 +187,23 @@ class AbstractBoard(EventDispatcher):
             self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
                                                            self.speculative_man_coords,
                                                            self.shape)
+            return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
 
-        return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
+        return None
+
+    def confirm_speculation(self):
+        '''Sets the current speculation state to the real board state. Returns
+        a list of permanent instructions.'''
+        self.ball_coords = self.speculative_ball_coords
+        self.man_coords = self.speculative_man_coords
+        self.legal_moves = self.speculative_legal_moves
+        instructions ={'move_ball_to': self.ball_coords,
+                       'move_ball_via': get_speculative_move_identifiers(tuple(self.ball_coords),
+                                                                         self.speculative_steps),
+                       'remove': reduce(lambda j, k: j+k, self.speculative_step_removals),
+                       'clear_transient': None}
+        self.reset_speculation()
+        return instructions
 
     def reset_speculation(self):
         self.speculative_ball_coords = self.ball_coords
@@ -244,9 +262,11 @@ class AbstractBoard(EventDispatcher):
         if not speculative:
             ball_coords = self.ball_coords
             man_coords = self.man_coords
+            legal_moves = self.legal_moves
         else:
             ball_coords = self.speculative_ball_coords
             man_coords = self.speculative_man_coords
+            legal_moves = self.speculative_legal_moves
         for y in range(self.shape[1])[::-1]:
             for x in range(self.shape[0]):
                 coords = (x, y)
@@ -255,6 +275,8 @@ class AbstractBoard(EventDispatcher):
                     string_elements.append('O')
                 elif coords in man_coords:
                     string_elements.append('X')
+                elif coords in legal_moves:
+                    string_elements.append('@')
                 else:
                     string_elements.append('.')
             string_elements.append('\n')
@@ -364,6 +386,9 @@ class Board(Widget):
         if instructions is None:
             return  # Nothing changes
 
+        print 'Following instructions:', instructions
+        print 'current men are', self.men
+
         if 'add' in instructions:
             add_coords = instructions['add']
             for coords in add_coords:
@@ -378,6 +403,15 @@ class Board(Widget):
         if 'conflicting_paths' in instructions:
             conflicting_markers = instructions['conflicting_paths']
             self.draw_conflicting_markers(conflicting_markers)
+        if 'clear_transient' in instructions:
+            self.clear_transient_ui_elements()
+            self.display_legal_moves()
+        if 'move_ball_to' in instructions:
+            ball_coords = instructions['move_ball_to']
+            ball = self.ball
+            ball.coords = ball_coords
+            ball.pos = self.coords_to_pos(ball_coords)
+            
 
     def draw_conflicting_markers(self, components):
         end_coords, paths = components
@@ -577,13 +611,19 @@ class Board(Widget):
             self.follow_instructions(instructions)
 
         self.clear_legal_move_markers()
-        if self.show_legal_moves:
-            self.display_legal_moves()
+        self.display_legal_moves()
 
-    def display_legal_moves(self):
-        legal_moves = self.abstractboard.speculative_legal_moves
-        for coords in legal_moves:
-            self.add_legal_move_marker(coords)
+    def confirm_speculation(self):
+        instructions = self.abstractboard.confirm_speculation()
+        self.follow_instructions(instructions)
+        print 'Confirmed speculation!'
+        print self.abstractboard.as_ascii(True)
+
+    def display_legal_moves(self, force=False):
+        if self.show_legal_moves or force:
+            legal_moves = self.abstractboard.speculative_legal_moves
+            for coords in legal_moves:
+                self.add_legal_move_marker(coords)
 
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid

@@ -30,8 +30,9 @@
             text: 'Move ball'
             on_release: boardcontainer.board.touch_mode = 'move_ball'
         Button:
-            text: 'Toggle man'
-            on_release: boardcontainer.board.touch_mode = 'toggle_man'
+            text: 'Confirm'
+            on_release: boardcontainer.board.confirm_speculation()
+            background_color: 1, 0, 0, 1
 
 <LegalMoveMarker>:
     canvas:
