@@ -1,5 +1,6 @@
 from kivy.vector import Vector
 
+
 def get_speculative_move_identifiers(coords, steps):
     '''Returns a list of speculative move identifiers from end coords
     (coords) and a list of steps. Returns a list of 4-tuples containing
@@ -14,12 +15,13 @@ def get_speculative_move_identifiers(coords, steps):
         identifiers.append((steps[-1][0], steps[-1][1], coords[0], coords[1]))
     return identifiers
 
+
 def coords_removed_on_step(start_coords, end_coords):
     '''Returns a list of coordinates on the straight line between
     start_coords and end_coords.'''
     start_coords = Vector(start_coords)
     end_coords = Vector(end_coords)
-    number_of_steps = int(round(max(map(abs,end_coords - start_coords))))
+    number_of_steps = int(round(max(map(abs, end_coords - start_coords))))
     direction = end_coords - start_coords
     jump = Vector(map(int, map(round, direction / number_of_steps)))
 
@@ -30,6 +32,7 @@ def coords_removed_on_step(start_coords, end_coords):
         removed_coords.append(tuple(current_coords))
     return removed_coords
 
+
 def removed_coords_from_steps(end_coord, steps):
     '''For each step, gets a list of removed coordinates. Returns all
     these lists.
@@ -38,9 +41,11 @@ def removed_coords_from_steps(end_coord, steps):
     for i in range(len(steps)-1):
         current_coords = steps[i]
         next_coords = steps[i+1]
-        removed_coords.append(coords_removed_on_step(current_coords, next_coords))
+        removed_coords.append(coords_removed_on_step(current_coords,
+                                                     next_coords))
     removed_coords.append(coords_removed_on_step(steps[-1], end_coord))
     return removed_coords
+
 
 def remove_coords_lists_from_set(coords_lists, coords_set):
     for coords_segment in coords_lists:
@@ -48,6 +53,7 @@ def remove_coords_lists_from_set(coords_lists, coords_set):
             coords = tuple(coords)
             if coords in coords_set:
                 coords_set.remove(coords)
+
 
 def add_coords_lists_to_set(coords_lists, coords_set):
     for coords_segment in coords_lists:
@@ -59,8 +65,11 @@ def add_coords_lists_to_set(coords_lists, coords_set):
 
 directions = map(Vector, [[1, 0], [1, 1], [0, 1], [-1, 1],
                           [-1, 0], [-1, -1], [0, -1], [1, -1]])
-def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None,
-                    legal_moves=None, depth=1, maxdepth=10):
+
+
+def get_legal_moves(ball_coords, man_coords, shape=(15, 19),
+                    previous_path=None, legal_moves=None,
+                    depth=1, maxdepth=10):
     '''Returns a dictionary of legal move coordinates, along with the
     paths to reach them, by recursively making all possible moves.
     '''
@@ -69,7 +78,7 @@ def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None,
     if previous_path is None:
         previous_path = []
     if legal_moves is None:
-        legal_moves = {} 
+        legal_moves = {}
     current_previous_path = previous_path[:]
     current_previous_path.append(ball_coords)
 
@@ -80,7 +89,7 @@ def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None,
             path_man_coords = man_coords.copy()
             while tuple(adj_coords) in path_man_coords:
                 path_man_coords.remove(tuple(adj_coords))
-                adj_coords += direction            
+                adj_coords += direction
             new_legal_move = tuple(adj_coords)
             if new_legal_move not in legal_moves:
                 legal_moves[tuple(adj_coords)] = [current_previous_path]
@@ -89,13 +98,13 @@ def get_legal_moves(ball_coords, man_coords, shape=(15, 19), previous_path=None,
             get_legal_moves(new_legal_move, path_man_coords, shape,
                             current_previous_path, legal_moves,
                             depth=depth+1, maxdepth=maxdepth)
-            
-            
     return legal_moves
+
 
 class AbstractBoard(object):
     '''A class that keeps track of the board logic; piece positions, legal
     moves etc.'''
+
     def __init__(self, shape=None):
         self.man_coords = set()
         self.ball_coords = (0, 0)
@@ -127,7 +136,7 @@ class AbstractBoard(object):
     def speculative_move_ball_to(self, coords):
         '''Tries to move the ball to the given coordinates. Returns
         appropriate instructions for how the board should change in
-        response.'''        
+        response.'''
         coords = tuple(coords)
         speculative_legal_moves = self.speculative_legal_moves
 
@@ -145,25 +154,29 @@ class AbstractBoard(object):
 
             self.speculative_ball_coords = coords
             newly_removed_coords = removed_coords_from_steps(coords, steps)
-            remove_coords_lists_from_set(newly_removed_coords, self.speculative_man_coords)
+            remove_coords_lists_from_set(newly_removed_coords,
+                                         self.speculative_man_coords)
             self.speculative_step_removals.extend(newly_removed_coords)
-            self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
-                                                           self.speculative_man_coords,
-                                                           self.shape)
+            self.speculative_legal_moves = get_legal_moves(
+                self.speculative_ball_coords, self.speculative_man_coords,
+                self.shape)
             self.speculative_steps.extend(map(tuple, steps))
-            return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
+            return {'speculative_marker': get_speculative_move_identifiers(
+                coords, self.speculative_steps)}
 
         if coords in self.speculative_steps:
-            index = self.speculative_steps.index(coords)
+            i = index = self.speculative_steps.index(coords)
             added_stones = self.speculative_step_removals[index:]
             self.speculative_ball_coords = coords
             self.speculative_steps = self.speculative_steps[:index]
-            self.speculative_step_removals = self.speculative_step_removals[:index]
+            self.speculative_step_removals = self.speculative_step_removals[:i]
             add_coords_lists_to_set(added_stones, self.speculative_man_coords)
-            self.speculative_legal_moves = get_legal_moves(self.speculative_ball_coords,
-                                                           self.speculative_man_coords,
-                                                           self.shape)
-            return {'speculative_marker': get_speculative_move_identifiers(coords, self.speculative_steps)}
+            self.speculative_legal_moves = get_legal_moves(
+                self.speculative_ball_coords,
+                self.speculative_man_coords,
+                self.shape)
+            return {'speculative_marker': get_speculative_move_identifiers(
+                coords, self.speculative_steps)}
 
         return None
 
@@ -173,11 +186,13 @@ class AbstractBoard(object):
         self.ball_coords = self.speculative_ball_coords
         self.man_coords = self.speculative_man_coords
         self.legal_moves = self.speculative_legal_moves
-        instructions ={'move_ball_to': self.ball_coords,
-                       'move_ball_via': get_speculative_move_identifiers(tuple(self.ball_coords),
-                                                                         self.speculative_steps),
-                       'remove': reduce(lambda j, k: j+k, self.speculative_step_removals),
-                       'clear_transient': None}
+        instructions = {'move_ball_to': self.ball_coords,
+                        'move_ball_via': get_speculative_move_identifiers(
+                            tuple(self.ball_coords),
+                            self.speculative_steps),
+                        'remove': reduce(lambda j, k: j + k,
+                                         self.speculative_step_removals),
+                        'clear_transient': None}
         self.reset_speculation()
         return instructions
 
@@ -187,7 +202,7 @@ class AbstractBoard(object):
         self.speculative_legal_moves = self.legal_moves
         self.speculative_step_removals = []
         self.speculative_steps = []
-                
+
     def reset(self, *args):
         self.man_coords = set()
         self.ball_coords = (0, 0)
@@ -228,7 +243,7 @@ class AbstractBoard(object):
 
     def update_legal_moves(self):
         moves = get_legal_moves(self.ball_coords, self.man_coords,
-                               self.shape)
+                                self.shape)
         self.legal_moves = moves
         return self.legal_moves
 
@@ -247,7 +262,7 @@ class AbstractBoard(object):
             for x in range(self.shape[0]):
                 coords = (x, y)
                 if (coords[0] == ball_coords[0] and
-                    coords[1] == ball_coords[1]):
+                        coords[1] == ball_coords[1]):
                     string_elements.append('O')
                 elif coords in man_coords:
                     string_elements.append('X')
