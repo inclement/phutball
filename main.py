@@ -7,6 +7,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.image import Image
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 
 from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
@@ -115,6 +116,9 @@ def coords_in_grid(coords, shape):
     if (x < 0 or y < 0 or x >= shape[0] or y >= shape[1]):
         return False
     return True
+
+class VictoryPopup(ModalView):
+    winner = StringProperty('')
 
 class AbstractBoard(EventDispatcher):
     '''A class that keeps track of the board logic; piece positions, legal
@@ -356,10 +360,15 @@ class Board(Widget):
     show_legal_moves = BooleanProperty(True)
 
     def __init__(self, *args, **kwargs):
+        self.register_event_type('on_win')
         super(Board, self).__init__(*args, **kwargs)
         Clock.schedule_once(self.initialise_ball, 0)
         self.abstractboard = AbstractBoard(shape=self.grid)
         self.abstractboard.reset()
+
+    def on_win(self, winner):
+        print 'Winner!', winner
+        VictoryPopup(winner=winner).open()
 
     def on_touch_mode(self, *args):
         mode = self.touch_mode
@@ -377,7 +386,11 @@ class Board(Widget):
     def check_for_win(self):
         '''Checks if either player has won, i.e. that the ball is in one of
         the goals.'''
-        return self.abstractboard.check_for_win()
+        winner = self.abstractboard.check_for_win()
+        if winner == 'top':
+            self.dispatch('on_win', 'top')
+        elif winner == 'bottom':
+            self.dispatch('on_win', 'bottom')
 
     def follow_instructions(self, instructions):
         '''Takes instructions from an AbstractBoard and uses them to update
@@ -616,6 +629,7 @@ class Board(Widget):
     def confirm_speculation(self):
         instructions = self.abstractboard.confirm_speculation()
         self.follow_instructions(instructions)
+        self.check_for_win()
         print 'Confirmed speculation!'
         print self.abstractboard.as_ascii(True)
 

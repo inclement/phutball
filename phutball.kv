@@ -1,5 +1,17 @@
 #:import Window kivy.core.window.Window
 
+<VictoryPopup>:
+    height: 260
+    size_hint_y: None
+    size_hint_x: 0.8
+    Label:
+        text: root.winner + ' wins!'
+        padding: 10, 10
+        font_size: 100
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+
 <ConflictingSegmentMarker>:
     canvas:
         Color:
