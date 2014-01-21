@@ -1,5 +1,19 @@
 #:import Window kivy.core.window.Window
 
+<MoveMakingMarker>:
+    canvas:
+        Color:
+            rgba: 1, 0, 0, 0.7*self.anim_progress
+        Triangle:
+            points: [self.center_x - 0.4*self.width - (1-self.anim_progress)*5*self.width, self.center_y, self.center_x - 0.4*self.width - (7+3*(1-self.anim_progress))*self.width, self.y + 0.3*self.height, self.center_x - 0.4*self.width - (7+3*(1-self.anim_progress))*self.width, self.y + 0.7*self.height]
+        Triangle:
+            points: [self.center_x + 0.4*self.width + (1-self.anim_progress)*5*self.width, self.center_y, self.center_x + 0.4*self.width + (7+3*(1-self.anim_progress))*self.width, self.y + 0.3*self.height, self.center_x + 0.4*self.width + (7+3*(1-self.anim_progress))*self.width, self.y + 0.7*self.height]
+        Triangle:
+            points: [self.center_x, self.center_y - 0.4*self.height - (1-self.anim_progress)*5*self.height, self.center_x, self.center_y - 0.4*self.height - (7+3*(1-self.anim_progress))*self.height, self.x + 0.3*self.width, self.center_y - 0.4*self.height - (7+3*(1-self.anim_progress))*self.height]
+        Triangle:
+            points: [self.center_x, self.center_y + 0.4*self.height + (1-self.anim_progress)*5*self.height, self.center_x, self.center_y + 0.4*self.height + (7+3*(1-self.anim_progress))*self.height, self.x + 0.3*self.width, self.center_y + 0.4*self.height + (7+3*(1-self.anim_progress))*self.height]
+
+
 <VictoryPopup>:
     height: 260
     size_hint_y: None
@@ -77,6 +91,8 @@
         
 
 <Board>:
+    id: board
+    move_marker: move_marker
     aspect_ratio: float(self.shape_y) / float(self.shape_x)
     portrait: True if self.aspect_ratio > 1.0 else False
     shape: (self.grid_x + 2*self.padding_x, self.grid_y + 2*self.padding_y)
@@ -106,3 +122,6 @@
         Rectangle:
             size: root.goal_rectangle_size
             pos: root.bottom_rectangle_pos
+    MoveMakingMarker:
+        id: move_marker
+        board: board

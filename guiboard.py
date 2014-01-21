@@ -27,6 +27,30 @@ def coords_in_grid(coords, shape):
         return False
     return True
 
+class MoveMakingMarker(Widget):
+    '''Marker showing the position of the current touch (where a move will
+    be made).
+    '''
+    coords = ListProperty([0, 0])
+    anim_progress = NumericProperty(0.0)
+    board = ObjectProperty()
+    animation_in = ObjectProperty(Animation(anim_progress=1,
+                                            t='out_quint',
+                                            duration=0.3))
+    animation_out = ObjectProperty(Animation(anim_progress=0,
+                                             t='out_quint',
+                                             duration=0.3))
+    def on_coords(self, *args):
+        coords = self.coords
+        pos = self.board.coords_to_pos(coords)
+        self.pos = pos
+    def anim_in(self, *args):
+        Animation.cancel_all(self)
+        self.animation_in.start(self)
+    def anim_out(self, *args):
+        Animation.cancel_all(self)
+        self.animation_out.start(self)
+        
 
 class VictoryPopup(ModalView):
     winner = StringProperty('')
@@ -105,6 +129,8 @@ class Board(Widget):
     speculative_segment_markers = DictProperty({})
 
     abstractboard = ObjectProperty()
+    move_marker = ObjectProperty()
+    touch = ObjectProperty(None, allownone=True)
 
     touch_mode = OptionProperty('play_man', options=['play_man',
                                                      'move_ball',
@@ -328,6 +354,9 @@ class Board(Widget):
             marker.start_pos = start_pos
             marker_end_pos = end_pos
 
+        self.move_marker.size = cell_size
+        self.move_marker.on_coords()
+
     def on_cell_size(self, *args):
         cell_size = self.cell_size
         if self.ball:
@@ -361,8 +390,25 @@ class Board(Widget):
         self.abstractboard.speculative_ball_coords = centre_coords
 
     def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.touch = touch
+            touch.grab(self)
+            self.move_marker.anim_in()
+            self.on_touch_move(touch)
+        
+    def on_touch_move(self, touch):
+        if touch is not self.touch:
+            return
+        coords = self.pos_to_coords(touch.pos)
+        self.move_marker.coords = coords
+
+    def on_touch_up(self, touch):
+        if touch is not self.touch:
+            return
+        touch.ungrab(self)
         coords = self.pos_to_coords(touch.pos)
         self.do_move_at(coords)
+        self.move_marker.anim_out()
         print self.abstractboard.as_ascii(True)
 
     def do_move_at(self, coords):
