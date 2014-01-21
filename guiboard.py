@@ -16,8 +16,10 @@ from kivy.clock import Clock
 
 from abstractboard import AbstractBoard
 
+
 def sign(n):
     return 1 if n >= 0 else -1
+
 
 def coords_in_grid(coords, shape):
     x, y = coords
@@ -29,10 +31,12 @@ def coords_in_grid(coords, shape):
 class VictoryPopup(ModalView):
     winner = StringProperty('')
 
+
 class ConflictingSegmentMarker(Widget):
     '''Marker that draws a red line between two coordinates, with an
     animation making the line fade to nothing and be removed.'''
     points = ListProperty([])
+
 
 class SpeculativeSegmentMarker(Widget):
     '''Marker that draws a line denoting a speculative movement.'''
@@ -40,31 +44,37 @@ class SpeculativeSegmentMarker(Widget):
     end_coords = ListProperty([0, 0])
     start_pos = ListProperty([0, 0])
     end_pos = ListProperty([0, 0])
-                    
+
+
 class Ball(Image):
     '''Widget representing the 'ball' piece.'''
     coords = ListProperty([0, 0])
+
 
 class Man(Image):
     '''Widget representing the 'man' pieces.'''
     coords = ListProperty([0, 0])
 
+
 class LegalMoveMarker(Widget):
     '''Widget representing a possible legal move.'''
     coords = ListProperty([0, 0])
 
+
 class BoardInterface(BoxLayout):
-    '''The widget for a whole board interface, intended to take up the whole screen.'''
+    '''The widget for a whole board interface, intended to take up the
+    whole screen.'''
+
 
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
 
-class Board(Widget):
 
+class Board(Widget):
     grid_x = NumericProperty(15)
     grid_y = NumericProperty(19)
     grid = ReferenceListProperty(grid_x, grid_y)
-    
+
     shape_x = NumericProperty(15)
     shape_y = NumericProperty(19)
     shape = ReferenceListProperty(shape_x, shape_y)
@@ -167,14 +177,15 @@ class Board(Widget):
             ball = self.ball
             ball.coords = ball_coords
             ball.pos = self.coords_to_pos(ball_coords)
-            
 
     def draw_conflicting_markers(self, components):
         end_coords, paths = components
-        end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+        end_pos = (Vector(self.coords_to_pos(end_coords)) +
+                   Vector(self.cell_size)/2.)
         lines = []
         for path in paths:
-            path = [Vector(self.coords_to_pos(coords)) + Vector(self.cell_size)/2.
+            path = [Vector(self.coords_to_pos(coords)) +
+                    Vector(self.cell_size)/2.
                     for coords in path]
             points = []
             for entry in path:
@@ -193,7 +204,6 @@ class Board(Widget):
 
     def remove_widget_from_anim(self, animation, widget):
         self.remove_widget(widget)
-            
 
     def sync_speculative_segment_markers(self, new_markers):
         existing_markers = self.speculative_segment_markers
@@ -209,8 +219,10 @@ class Board(Widget):
             return
         start_coords = tuple(identifier[:2])
         end_coords = tuple(identifier[2:])
-        start_pos = Vector(self.coords_to_pos(start_coords)) + Vector(self.cell_size)/2.
-        end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+        start_pos = (Vector(self.coords_to_pos(start_coords)) +
+                     Vector(self.cell_size)/2.)
+        end_pos = (Vector(self.coords_to_pos(end_coords)) +
+                   Vector(self.cell_size)/2.)
         marker = SpeculativeSegmentMarker(start_coords=start_coords,
                                           end_coords=end_coords,
                                           start_pos=start_pos,
@@ -300,7 +312,8 @@ class Board(Widget):
         for marker_coords, marker in self.legal_move_markers.iteritems():
             marker.pos = self.coords_to_pos(marker.coords)
             marker.size = self.cell_size
-        self.goal_rectangle_size = Vector([self.grid[0], 2]) * Vector(self.cell_size)
+        self.goal_rectangle_size = (Vector([self.grid[0], 2]) *
+                                    Vector(self.cell_size))
         self.top_rectangle_pos = self.coords_to_pos((0, self.grid[1]-2))
         self.bottom_rectangle_pos = self.coords_to_pos((0, 0))
 
@@ -308,11 +321,12 @@ class Board(Widget):
         for marker_coords, marker in self.speculative_segment_markers.iteritems():
             start_coords = marker.start_coords
             end_coords = marker.end_coords
-            start_pos = Vector(self.coords_to_pos(start_coords)) + Vector(self.cell_size)/2.
-            end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+            start_pos = (Vector(self.coords_to_pos(start_coords)) +
+                         Vector(self.cell_size)/2.)
+            end_pos = (Vector(self.coords_to_pos(end_coords)) +
+                       Vector(self.cell_size)/2.)
             marker.start_pos = start_pos
             marker_end_pos = end_pos
-        
 
     def on_cell_size(self, *args):
         cell_size = self.cell_size
@@ -326,8 +340,10 @@ class Board(Widget):
         for marker_coords, marker in self.speculative_segment_markers.iteritems():
             start_coords = marker.start_coords
             end_coords = marker.end_coords
-            start_pos = Vector(self.coords_to_pos(start_coords)) + Vector(self.cell_size)/2.
-            end_pos = Vector(self.coords_to_pos(end_coords)) + Vector(self.cell_size)/2.
+            start_pos = (Vector(self.coords_to_pos(start_coords)) +
+                         Vector(self.cell_size)/2.)
+            end_pos = (Vector(self.coords_to_pos(end_coords)) +
+                       Vector(self.cell_size)/2.)
             marker.start_pos = start_pos
             marker_end_pos = end_pos
 
@@ -385,7 +401,7 @@ class Board(Widget):
     def pos_to_coords(self, pos):
         '''Takes a pos in screen coordinates, and converts to a grid
         position.'''
-        
+
         pos = Vector(pos)
         cell_size = Vector(self.cell_size)
         self_pos = Vector(self.pos) + Vector(cell_size) / 2.0
@@ -403,14 +419,13 @@ class Board(Widget):
         padding = Vector(self.padding)
         return self_pos + (padding + Vector(coords)) * cell_size
 
-    
     def calculate_lines(self, *args):
         '''Calculates the points that should make up the board lines, and sets
         self.grid_points appropriately.'''
 
         pos = Vector(self.pos)
         padding = Vector(self.padding)
-        shape = Vector(self.shape) 
+        shape = Vector(self.shape)
         grid = Vector(self.grid)
         cell_size = Vector(self.cell_size)
 
@@ -420,10 +435,12 @@ class Board(Widget):
         # grid corners
         bl = pos + init_offset + padding*cell_size
         br = bl + Vector((grid[0]-1) * cell_size[0], 0)
-        tr = bl + (grid-Vector(1,1)) * cell_size
+        tr = bl + (grid-Vector(1, 1)) * cell_size
         tl = bl + Vector(0, (grid[1]-1) * cell_size[1])
 
-        points = [bl[0], bl[1], br[0], br[1], tr[0], tr[1], tl[0], tl[1], bl[0], bl[1]]
+        points = [bl[0], bl[1], br[0], br[1],
+                  tr[0], tr[1], tl[0], tl[1],
+                  bl[0], bl[1]]
 
         cur_pos = bl
         dir = 1
@@ -447,5 +464,3 @@ class Board(Widget):
             ydir *= -1
 
         self.grid_points = points
-
-
