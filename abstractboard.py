@@ -183,6 +183,8 @@ class AbstractBoard(object):
     def confirm_speculation(self):
         '''Sets the current speculation state to the real board state. Returns
         a list of permanent instructions.'''
+        if not self.speculative_step_removals:
+            return None
         self.ball_coords = self.speculative_ball_coords
         self.man_coords = self.speculative_man_coords
         self.legal_moves = self.speculative_legal_moves

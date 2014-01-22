@@ -40,6 +40,15 @@ class MoveMakingMarker(Widget):
     animation_out = ObjectProperty(Animation(anim_progress=0,
                                              t='out_quint',
                                              duration=0.3))
+    mode = OptionProperty('play_man', options=['play_man',
+                                               'move_ball'])
+    colour = ListProperty([0.2, 0.2, 0.8])
+    def on_mode(self, *args):
+        mode = self.mode
+        if mode == 'play_man':
+            self.colour = [0.2, 0.2, 0.8]
+        else:
+            self.colour = [0.2, 0.8, 0.2]
     def on_coords(self, *args):
         coords = self.coords
         pos = self.board.coords_to_pos(coords)
@@ -132,10 +141,10 @@ class Board(Widget):
     move_marker = ObjectProperty()
     touch = ObjectProperty(None, allownone=True)
 
-    touch_mode = OptionProperty('play_man', options=['play_man',
-                                                     'move_ball',
-                                                     'toggle_man',
-                                                     'dormant'])
+    touch_mode = StringProperty('play_man')  #, options=['play_man',
+                                                     # 'move_ball',
+                                                     # 'toggle_man',
+                                                     # 'dormant'])
     show_legal_moves = BooleanProperty(True)
 
     def __init__(self, *args, **kwargs):
@@ -146,7 +155,6 @@ class Board(Widget):
         self.abstractboard.reset()
 
     def on_win(self, winner):
-        print 'Winner!', winner
         VictoryPopup(winner=winner).open()
 
     def on_touch_mode(self, *args):
@@ -155,6 +163,9 @@ class Board(Widget):
             self.abstractboard.reset_speculation()
             self.clear_transient_ui_elements()
             self.display_legal_moves()
+            self.move_marker.mode = 'play_man'
+        else:
+            self.move_marker.mode = 'move_ball'
 
     def advance_player(self):
         if self.player == 'bottom':
@@ -177,9 +188,6 @@ class Board(Widget):
 
         if instructions is None:
             return  # Nothing changes
-
-        print 'Following instructions:', instructions
-        print 'current men are', self.men
 
         if 'add' in instructions:
             add_coords = instructions['add']
@@ -409,7 +417,6 @@ class Board(Widget):
         coords = self.pos_to_coords(touch.pos)
         self.do_move_at(coords)
         self.move_marker.anim_out()
-        print self.abstractboard.as_ascii(True)
 
     def do_move_at(self, coords):
         coords = tuple(coords)
@@ -435,7 +442,6 @@ class Board(Widget):
         instructions = self.abstractboard.confirm_speculation()
         self.follow_instructions(instructions)
         self.check_for_win()
-        print 'Confirmed speculation!'
         print self.abstractboard.as_ascii(True)
 
     def display_legal_moves(self, force=False):
