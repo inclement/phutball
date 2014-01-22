@@ -1,17 +1,65 @@
 #:import Window kivy.core.window.Window
+#:import Vector kivy.vector.Vector
+
+<MoveButton>:
+    canvas:
+        Color:
+            rgba: 0, 1, 0, 0.5 + 0.5*self.anim_progress
+        Rectangle:
+            pos: Vector(self.pos) + 0.05*Vector(self.size)
+            size: 0.9*Vector(self.size)
+    Label:
+        text: root.text
+
+<InterfaceButtons>:
+    mode: self.board.touch_mode if self.board else 'play_man'
+    Button:
+        text: 'Play man'
+        on_release: root.board.touch_mode = 'play_man'
+    MoveButton:
+        text: 'Move ball'
+        on_release: root.board.touch_mode = 'move_ball'
+    Button:
+        text: 'Confirm'
+        on_release: root.board.confirm_speculation()
+        background_color: 1, 0, 0, 1
 
 <MoveMakingMarker>:
     canvas:
         Color:
             rgba: self.colour[0], self.colour[1], self.colour[2], 0.7*self.anim_progress
         Triangle:
-            points: [self.center_x - 0.4*self.width - (1-self.anim_progress)*5*self.width, self.center_y, self.center_x - 0.4*self.width - (7+3*(1-self.anim_progress))*self.width, self.y + 0.3*self.height, self.center_x - 0.4*self.width - (7+3*(1-self.anim_progress))*self.width, self.y + 0.7*self.height]
+            points:
+                [self.center_x - 0.4*self.width - (1-self.anim_progress)*5*self.width,
+                self.center_y,
+                self.center_x - 0.4*self.width - (7+3*(1-self.anim_progress))*self.width,
+                self.y + 0.3*self.height,
+                self.center_x - 0.4*self.width - (7+3*(1-self.anim_progress))*self.width,
+                self.y + 0.7*self.height]
         Triangle:
-            points: [self.center_x + 0.4*self.width + (1-self.anim_progress)*5*self.width, self.center_y, self.center_x + 0.4*self.width + (7+3*(1-self.anim_progress))*self.width, self.y + 0.3*self.height, self.center_x + 0.4*self.width + (7+3*(1-self.anim_progress))*self.width, self.y + 0.7*self.height]
+            points:
+                [self.center_x + 0.4*self.width + (1-self.anim_progress)*5*self.width,
+                self.center_y,
+                self.center_x + 0.4*self.width + (7+3*(1-self.anim_progress))*self.width,
+                self.y + 0.3*self.height,
+                self.center_x + 0.4*self.width + (7+3*(1-self.anim_progress))*self.width,
+                self.y + 0.7*self.height]
         Triangle:
-            points: [self.center_x, self.center_y - 0.4*self.height - (1-self.anim_progress)*5*self.height, self.center_x + 0.2*self.width, self.center_y - 0.4*self.height - (7+3*(1-self.anim_progress))*self.height, self.x + 0.3*self.width, self.center_y - 0.4*self.height - (7+3*(1-self.anim_progress))*self.height]
+            points:
+                [self.center_x,
+                self.center_y - 0.4*self.height - (1-self.anim_progress)*5*self.height,
+                self.center_x + 0.2*self.width,
+                self.center_y - 0.4*self.height - (7+3*(1-self.anim_progress))*self.height,
+                self.x + 0.3*self.width,
+                self.center_y - 0.4*self.height - (7+3*(1-self.anim_progress))*self.height]
         Triangle:
-            points: [self.center_x, self.center_y + 0.4*self.height + (1-self.anim_progress)*5*self.height, self.center_x + 0.2*self.width, self.center_y + 0.4*self.height + (7+3*(1-self.anim_progress))*self.height, self.x + 0.3*self.width, self.center_y + 0.4*self.height + (7+3*(1-self.anim_progress))*self.height]
+            points:
+                [self.center_x,
+                self.center_y + 0.4*self.height + (1-self.anim_progress)*5*self.height,
+                self.center_x + 0.2*self.width,
+                self.center_y + 0.4*self.height + (7+3*(1-self.anim_progress))*self.height,
+                self.x + 0.3*self.width,
+                self.center_y + 0.4*self.height + (7+3*(1-self.anim_progress))*self.height]
 
 
 <VictoryPopup>:
@@ -48,17 +96,8 @@
         id: boardcontainer
         size_hint_y: None if Window.height > 1.2*Window.width else 3
         height: Window.width
-    BoxLayout:
-        Button:
-            text: 'Play man'
-            on_release: boardcontainer.board.touch_mode = 'play_man'
-        Button:
-            text: 'Move ball'
-            on_release: boardcontainer.board.touch_mode = 'move_ball'
-        Button:
-            text: 'Confirm'
-            on_release: boardcontainer.board.confirm_speculation()
-            background_color: 1, 0, 0, 1
+    InterfaceButtons:
+        board: boardcontainer.board
 
 <LegalMoveMarker>:
     canvas:

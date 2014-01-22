@@ -8,6 +8,8 @@ from kivy.uix.image import Image
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 
+from kivy.uix.behaviors import ButtonBehavior
+
 from kivy.properties import (NumericProperty, ListProperty,
                              ReferenceListProperty, StringProperty,
                              BooleanProperty, ObjectProperty,
@@ -26,6 +28,31 @@ def coords_in_grid(coords, shape):
     if (x < 0 or y < 0 or x >= shape[0] or y >= shape[1]):
         return False
     return True
+
+class ActiveButton(ButtonBehavior, BoxLayout):
+    '''Widget accepting button input that also has an active property and
+    an animation progress property to/from that state.'''
+    text = StringProperty('')
+    anim_progress = NumericProperty(0)
+    active = BooleanProperty(True)
+    anim_to_active = ObjectProperty(Animation(anim_progress=1, duration=0.4))
+    anim_to_inactive = ObjectProperty(Animation(anim_progress=0, duration=0.4))
+
+    def on_active(self):
+        Animation.cancel_all(self)
+        if self.active:
+            self.anim_to_active.start(self)
+        else:
+            self.anim_to_inactive.start(self)
+
+class MoveButton(ActiveButton):
+    pass
+
+class InterfaceButtons(BoxLayout):
+    board = ObjectProperty()
+    mode = StringProperty('play_man')
+    anim_progress = NumericProperty(0)
+
 
 class MoveMakingMarker(Widget):
     '''Marker showing the position of the current touch (where a move will
@@ -141,10 +168,13 @@ class Board(Widget):
     move_marker = ObjectProperty()
     touch = ObjectProperty(None, allownone=True)
 
-    touch_mode = StringProperty('play_man')  #, options=['play_man',
-                                                     # 'move_ball',
-                                                     # 'toggle_man',
-                                                     # 'dormant'])
+    current_player = OptionProperty('top', options=['top',
+                                                    'bottom'])
+    touch_mode = StringProperty('play_man', options=['play_man',
+                                                     'move_ball',
+                                                     'toggle_man',
+                                                     'dormant'])
+
     show_legal_moves = BooleanProperty(True)
 
     def __init__(self, *args, **kwargs):
