@@ -1,14 +1,18 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<PhutballManager>:
+    AIGameScreen:
+        BoardInterface:
+
 <PlayManButton>:
     text: 'Play man'
     canvas:
         Color:
             rgba: 0, 0, 1, 0.5 + 0.4*self.anim_progress
         Rectangle:
-            pos: Vector(self.pos) + 0.05*Vector(self.size)
-            size: 0.9*Vector(self.size)
+            pos: Vector(self.pos) + (0.1 - 0.05*self.anim_progress)*Vector(self.size)
+            size: (0.8 + 0.1*self.anim_progress)*Vector(self.size)
     Label:
         text: root.text
 
@@ -18,8 +22,8 @@
         Color:
             rgba: 0, 1, 0, 0.5 + 0.3*self.anim_progress
         Rectangle:
-            pos: Vector(self.pos) + 0.05*Vector(self.size)
-            size: 0.9*Vector(self.size)
+            pos: Vector(self.pos) + (0.1 - 0.05*self.anim_progress)*Vector(self.size)
+            size: (0.8 + 0.1*self.anim_progress)*Vector(self.size)
     Label:
         text: root.text
 
