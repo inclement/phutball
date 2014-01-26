@@ -1,7 +1,19 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<PlayManButton>:
+    text: 'Play man'
+    canvas:
+        Color:
+            rgba: 0, 0, 1, 0.5 + 0.5*self.anim_progress
+        Rectangle:
+            pos: Vector(self.pos) + 0.05*Vector(self.size)
+            size: 0.9*Vector(self.size)
+    Label:
+        text: root.text
+
 <MoveButton>:
+    text: 'Move ball'
     canvas:
         Color:
             rgba: 0, 1, 0, 0.5 + 0.5*self.anim_progress
@@ -13,11 +25,9 @@
 
 <InterfaceButtons>:
     mode: self.board.touch_mode if self.board else 'play_man'
-    Button:
-        text: 'Play man'
+    PlayManButton:
         on_release: root.board.touch_mode = 'play_man'
     MoveButton:
-        text: 'Move ball'
         on_release: root.board.touch_mode = 'move_ball'
     Button:
         text: 'Confirm'

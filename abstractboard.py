@@ -106,6 +106,8 @@ class AbstractBoard(object):
     moves etc.'''
 
     def __init__(self, shape=None):
+        self.ai = None
+        
         self.man_coords = set()
         self.ball_coords = (0, 0)
         self.shape = (15, 19)
@@ -122,6 +124,14 @@ class AbstractBoard(object):
 
         if 'shape' is not None:
             self.shape = shape
+
+    def initialise_ai(self):
+        '''Creates and/or updates self.ai with the relevant attributes of
+        self.'''
+        if self.ai is None:
+            self.ai = AI(self)
+        else:
+            self.ai.abstractboard = self
 
     def check_for_win(self):
         '''Checks if either player has won.'''
@@ -179,6 +189,15 @@ class AbstractBoard(object):
                 coords, self.speculative_steps)}
 
         return None
+
+    def speculative_play_man_at(self, coords):
+        '''Speculatively plays a man at the given coordinates.'''
+        coords = tuple(coords)
+        self.speculative_man_coords.add(coords)
+        self.speculative_legal_moves = get_legal_moves(
+            self.speculative_ball_coords,
+            self.speculative_man_coords,
+            self.shape)
 
     def confirm_speculation(self):
         '''Sets the current speculation state to the real board state. Returns

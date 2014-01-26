@@ -18,6 +18,7 @@ from kivy.clock import Clock
 
 from abstractboard import AbstractBoard
 
+import random
 
 def sign(n):
     return 1 if n >= 0 else -1
@@ -25,9 +26,10 @@ def sign(n):
 
 def coords_in_grid(coords, shape):
     x, y = coords
-    if (x < 0 or y < 0 or x >= shape[0] or y >= shape[1]):
+    if (x < 0 or y < 0 or x >= (shape[0]-1) or y >= (shape[1]-1)):
         return False
     return True
+
 
 class ActiveButton(ButtonBehavior, BoxLayout):
     '''Widget accepting button input that also has an active property and
@@ -45,8 +47,14 @@ class ActiveButton(ButtonBehavior, BoxLayout):
         else:
             self.anim_to_inactive.start(self)
 
+
 class MoveButton(ActiveButton):
     pass
+
+
+class PlayManButton(ActiveButton):
+    pass
+
 
 class InterfaceButtons(BoxLayout):
     board = ObjectProperty()
@@ -104,6 +112,10 @@ class SpeculativeSegmentMarker(Widget):
     end_coords = ListProperty([0, 0])
     start_pos = ListProperty([0, 0])
     end_pos = ListProperty([0, 0])
+
+    y_shifts = ListProperty([])
+    points = ListProperty([])
+    points_per_step = NumericProperty(5)
 
 
 class Ball(Image):
