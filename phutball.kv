@@ -5,7 +5,7 @@
     text: 'Play man'
     canvas:
         Color:
-            rgba: 0, 0, 1, 0.5 + 0.5*self.anim_progress
+            rgba: 0, 0, 1, 0.5 + 0.4*self.anim_progress
         Rectangle:
             pos: Vector(self.pos) + 0.05*Vector(self.size)
             size: 0.9*Vector(self.size)
@@ -16,7 +16,7 @@
     text: 'Move ball'
     canvas:
         Color:
-            rgba: 0, 1, 0, 0.5 + 0.5*self.anim_progress
+            rgba: 0, 1, 0, 0.5 + 0.3*self.anim_progress
         Rectangle:
             pos: Vector(self.pos) + 0.05*Vector(self.size)
             size: 0.9*Vector(self.size)
@@ -25,15 +25,21 @@
 
 <InterfaceButtons>:
     mode: self.board.touch_mode if self.board else 'play_man'
+    play_man_button: playman
+    move_button: move
     Label:
         text_size: self.size
         text: root.board.current_player + ' to play' if root.board else ''
         valign: 'middle'
         halign: 'center'
     PlayManButton:
+        id: playman
         on_release: root.board.touch_mode = 'play_man'
+        active: True if root.touch_mode == 'play_man' else False
     MoveButton:
+        id: move
         on_release: root.board.touch_mode = 'move_ball'
+        active: True if root.touch_mode == 'move_ball' else False
     Button:
         text: 'Confirm'
         on_release: root.board.confirm_speculation()
@@ -113,6 +119,7 @@
         height: Window.width
     InterfaceButtons:
         board: boardcontainer.board
+        touch_mode: boardcontainer.board.touch_mode
 
 <LegalMoveMarker>:
     canvas:

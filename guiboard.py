@@ -37,10 +37,10 @@ class ActiveButton(ButtonBehavior, BoxLayout):
     text = StringProperty('')
     anim_progress = NumericProperty(0)
     active = BooleanProperty(True)
-    anim_to_active = ObjectProperty(Animation(anim_progress=1, duration=0.4))
-    anim_to_inactive = ObjectProperty(Animation(anim_progress=0, duration=0.4))
+    anim_to_active = ObjectProperty(Animation(anim_progress=1, duration=0.2))
+    anim_to_inactive = ObjectProperty(Animation(anim_progress=0, duration=0.2))
 
-    def on_active(self):
+    def on_active(self, *args):
         Animation.cancel_all(self)
         if self.active:
             self.anim_to_active.start(self)
@@ -59,7 +59,7 @@ class PlayManButton(ActiveButton):
 class InterfaceButtons(BoxLayout):
     board = ObjectProperty()
     mode = StringProperty('play_man')
-    anim_progress = NumericProperty(0)
+    touch_mode = StringProperty('')
 
 
 class MoveMakingMarker(Widget):
