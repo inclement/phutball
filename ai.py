@@ -1,11 +1,9 @@
 '''Module for a simple phutball playing ai.'''
 
-from abstractboard import AbstractBoard
-
 def max_height_in_coords(coords):
-    max_height = 0
+    max_height = (0, 0)
     for coord in coords:
-        if coord[1] > max_height:
+        if coord[1] > max_height[1]:
             max_height = coord
     return max_height
 
@@ -18,16 +16,17 @@ def min_height_in_coords(coords):
 
 class AI(object):
 
-    def __init__(self, abstractboard=None):
-        if abstractboard is not None:
-            self.abstractboard = abstractboard
-        else:
-            self.abstractboard = AbstractBoard()
+    def __init__(self, abstractboard):
+        self.abstractboard = abstractboard
     
     def get_move(self):
         legal_moves = self.abstractboard.legal_moves
+        current_pos = self.abstractboard.ball_coords
         current = self.abstractboard.ball_coords
         shape = self.abstractboard.shape
+
+        if len(legal_moves) == 0:
+            return ('play', (current_pos[0], current_pos[1]-1))
 
         # Check max/min possible moves
         y_max = 0
@@ -43,8 +42,8 @@ class AI(object):
                 min_move = move
 
         # If can win, win
-        if min_index <= 1:
-            print 'AI: Win by playing at {}'.format(min_index)
+        if min_move[1] <= 1:
+            print 'AI: Win by playing at {}'.format(min_move)
             return ('move', min_move)
 
         # If opponent can move 6 spaces and end up closer than that to the bottom
@@ -64,8 +63,9 @@ class AI(object):
                 # If can flip parity usefully, do so
                 best_change = max_move
                 best_play = (0, 0)
-                for coords in legal_moves[max_move]:
-                    self.abstractboard.speculatively_play_man_at(coords)
+                for coords in legal_moves[max_move][0][1:]:
+                    coords = tuple(coords)
+                    self.abstractboard.speculative_play_man_at(coords)
                     new_legal_moves = self.abstractboard.speculative_legal_moves
                     new_max_coord = max_height_in_coords(new_legal_moves.keys())
                     if new_max_coord[1] < best_change[1]:
@@ -74,11 +74,15 @@ class AI(object):
                     self.abstractboard.reset_speculation()
                 if best_change[0] != max_move[0] and best_change[1] != max_move[1]:
                     print 'AI: Flipping parity, playing at {}'.format(best_change)
-                    return ('move', best_change)
+                    return ('play', best_play)
 
         # If opponent can win, at least try to jump away.
         # TODO
 
         # Else, make a move to get higher
         print 'AI: Nothing else useful to do, trying to jump further.'
-        return ('play', (max_move[0], max_move[1]+1))
+        if current_pos[1] < min_move[1]:
+            new_move = (current_pos[0], current_pos[1]-1)
+        else:
+            new_move = (min_move[0], min_move[1]-1)
+        return ('play', new_move)

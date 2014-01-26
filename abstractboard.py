@@ -1,4 +1,5 @@
 from kivy.vector import Vector
+from ai import AI
 
 
 def get_speculative_move_identifiers(coords, steps):
@@ -126,12 +127,8 @@ class AbstractBoard(object):
             self.shape = shape
 
     def initialise_ai(self):
-        '''Creates and/or updates self.ai with the relevant attributes of
-        self.'''
-        if self.ai is None:
+        if not self.ai:
             self.ai = AI(self)
-        else:
-            self.ai.abstractboard = self
 
     def check_for_win(self):
         '''Checks if either player has won.'''
@@ -149,8 +146,6 @@ class AbstractBoard(object):
         response.'''
         coords = tuple(coords)
         speculative_legal_moves = self.speculative_legal_moves
-
-        print 'speculative move to', coords
 
         if coords in self.speculative_legal_moves:
             possible_paths = self.speculative_legal_moves[coords]
@@ -202,18 +197,23 @@ class AbstractBoard(object):
     def confirm_speculation(self):
         '''Sets the current speculation state to the real board state. Returns
         a list of permanent instructions.'''
-        if not self.speculative_step_removals:
+        if (not self.speculative_step_removals and 
+            self.speculative_man_coords - self.man_coords == set()):
             return None
+        new_men = self.speculative_man_coords - self.man_coords
         self.ball_coords = self.speculative_ball_coords
         self.man_coords = self.speculative_man_coords
         self.legal_moves = self.speculative_legal_moves
-        instructions = {'move_ball_to': self.ball_coords,
-                        'move_ball_via': get_speculative_move_identifiers(
-                            tuple(self.ball_coords),
-                            self.speculative_steps),
-                        'remove': reduce(lambda j, k: j + k,
-                                         self.speculative_step_removals),
-                        'clear_transient': None}
+        if new_men:
+            instructions = {'add': list(new_men)}
+        else:
+            instructions = {'move_ball_to': self.ball_coords,
+                            'move_ball_via': get_speculative_move_identifiers(
+                                tuple(self.ball_coords),
+                                self.speculative_steps),
+                            'remove': reduce(lambda j, k: j + k,
+                                             self.speculative_step_removals),
+                            'clear_transient': None}
         self.reset_speculation()
         return instructions
 
@@ -262,6 +262,20 @@ class AbstractBoard(object):
             self.reset_speculation()
         return instructions
 
+    def do_ai_move(self):
+        if not self.ai:
+            self.initialise_ai()
+
+        self.reset_speculation()
+
+        move_type, coords = self.ai.get_move()
+        print 'ai wants to move at', coords, move_type
+        if move_type == 'move':
+            self.speculative_move_ball_to(coords)
+        elif move_type == 'play':
+            self.speculative_play_man_at(coords)
+#        legal_moves[current_pos] = 
+
     def update_legal_moves(self):
         moves = get_legal_moves(self.ball_coords, self.man_coords,
                                 self.shape)
@@ -289,7 +303,9 @@ class AbstractBoard(object):
                     string_elements.append('X')
                 elif coords in legal_moves:
                     string_elements.append('@')
+                elif coords[1] <= 1 or coords[1] >= self.shape[1]-2:
+                    string_elements.append(',')
                 else:
-                    string_elements.append('.')
+                    string_elements.append(',')
             string_elements.append('\n')
         return ''.join(string_elements)

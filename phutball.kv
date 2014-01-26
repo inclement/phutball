@@ -25,6 +25,11 @@
 
 <InterfaceButtons>:
     mode: self.board.touch_mode if self.board else 'play_man'
+    Label:
+        text_size: self.size
+        text: root.board.current_player + ' to play' if root.board else ''
+        valign: 'middle'
+        halign: 'center'
     PlayManButton:
         on_release: root.board.touch_mode = 'play_man'
     MoveButton:
@@ -141,6 +146,7 @@
 
 <Board>:
     id: board
+    use_ai: True
     move_marker: move_marker
     aspect_ratio: float(self.shape_y) / float(self.shape_x)
     portrait: True if self.aspect_ratio > 1.0 else False

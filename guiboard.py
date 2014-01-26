@@ -177,6 +177,7 @@ class Board(Widget):
     speculative_segment_markers = DictProperty({})
 
     abstractboard = ObjectProperty()
+    use_ai = BooleanProperty(False)
     move_marker = ObjectProperty()
     touch = ObjectProperty(None, allownone=True)
 
@@ -191,10 +192,15 @@ class Board(Widget):
 
     def __init__(self, *args, **kwargs):
         self.register_event_type('on_win')
+        if 'use_ai' in kwargs:
+            use_ai = kwargs.pop('use_ai')
+        else:
+            use_ai = False
         super(Board, self).__init__(*args, **kwargs)
         Clock.schedule_once(self.initialise_ball, 0)
         self.abstractboard = AbstractBoard(shape=self.grid)
         self.abstractboard.reset()
+        self.use_ai = use_ai
 
     def on_win(self, winner):
         VictoryPopup(winner=winner).open()
@@ -463,6 +469,13 @@ class Board(Widget):
     def do_move_at(self, coords):
         coords = tuple(coords)
         mode = self.touch_mode
+
+        # Check if move is valid
+        if coords in self.men:
+            return
+        if coords == tuple(self.ball.coords):
+            return
+        
         if mode == 'dormant':
             return
         elif mode == 'toggle_man':
@@ -473,6 +486,7 @@ class Board(Widget):
             if instructions is not None:
                 self.advance_player()
             self.clear_speculative_segment_markers()
+            self.switch_current_player()
         elif mode == 'move_ball':
             instructions = self.abstractboard.speculative_move_ball_to(coords)
             self.follow_instructions(instructions)
@@ -480,11 +494,21 @@ class Board(Widget):
         self.clear_legal_move_markers()
         self.display_legal_moves()
 
+    def switch_current_player(self):
+        self.current_player = {'top': 'bottom',
+                               'bottom': 'top'}[self.current_player]
+        if self.use_ai and self.current_player == 'bottom':
+            self.do_ai_move()
+
+    def do_ai_move(self, *args):
+        self.abstractboard.do_ai_move()
+        self.confirm_speculation()
+
     def confirm_speculation(self):
         instructions = self.abstractboard.confirm_speculation()
         self.follow_instructions(instructions)
         self.check_for_win()
-        print self.abstractboard.as_ascii(True)
+        self.switch_current_player()
 
     def display_legal_moves(self, force=False):
         if self.show_legal_moves or force:
