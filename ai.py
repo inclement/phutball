@@ -43,21 +43,21 @@ class AI(object):
 
         # If can win, win
         if min_move[1] <= 1:
-            print 'AI: Win by playing at {}'.format(min_move)
+            print( 'AI: Win by playing at {}'.format(min_move))
             return ('move', min_move)
 
         # If opponent can move 6 spaces and end up closer than that to the bottom
         jump = y_max - current[1]
         if jump >= 6:
             if shape[1]-2 - y_max < jump:
-                print ('AI: Opponent can jump too far to {}, '
-                       'trying to prevent.').format(max_move)
+                print('AI: Opponent can jump too far to {}, '
+                      'trying to prevent.'.format(max_move))
 
                 # If can jump more than one move and end up closer to bottom
                 down_jump = current[1] - y_min
                 if down_jump >= 6:
                     if 2 + y_max < jump:
-                        print 'AI: Performing counter-jump to {}'.format(min_move)
+                        print( 'AI: Performing counter-jump to {}'.format(min_move))
                         return ('move', min_move)
                         
                 # If can flip parity usefully, do so
@@ -73,14 +73,14 @@ class AI(object):
                         best_play = coords
                     self.abstractboard.reset_speculation()
                 if best_change[0] != max_move[0] and best_change[1] != max_move[1]:
-                    print 'AI: Flipping parity, playing at {}'.format(best_change)
+                    print('AI: Flipping parity, playing at {}'.format(best_change))
                     return ('play', best_play)
 
         # If opponent can win, at least try to jump away.
         # TODO
 
         # Else, make a move to get higher
-        print 'AI: Nothing else useful to do, trying to jump further.'
+        print('AI: Nothing else useful to do, trying to jump further.')
         if current_pos[1] < min_move[1]:
             new_move = (current_pos[0], current_pos[1]-1)
         else:
