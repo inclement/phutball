@@ -2,8 +2,28 @@
 #:import Vector kivy.vector.Vector
 
 <PhutballManager>:
-    AIGameScreen:
-        BoardInterface:
+    HomeScreen:
+
+<HomeScreen>:
+    name: 'home'
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            size_hint_y: None
+            height: dp(100)
+            font_size: self.height
+            text: 'Phutball'
+        Button:
+            text: 'AI game'
+            on_press:
+                app.manager.new_board(ai=True)
+        Button:
+            text: 'Human game'
+            on_press:
+                app.manager.new_board()
+        
+<GameScreen>:
+    BoardInterface:
 
 <PlayManButton>:
     text: 'Play man'
@@ -157,7 +177,6 @@
 
 <Board>:
     id: board
-    use_ai: True
     move_marker: move_marker
     aspect_ratio: float(self.shape_y) / float(self.shape_x)
     portrait: True if self.aspect_ratio > 1.0 else False
@@ -179,12 +198,12 @@
             points: root.grid_points
             width: 1
         Color:
-            rgba: 1, 0, 0, 0.1
+            rgba: 0, 1, 0, 0.1
         Rectangle:
             size: root.goal_rectangle_size
             pos: root.top_rectangle_pos
         Color:
-            rgba: 0, 1, 0, 0.1
+            rgba: 1, 0, 0, 0.1
         Rectangle:
             size: root.goal_rectangle_size
             pos: root.bottom_rectangle_pos
