@@ -22,7 +22,7 @@ def coords_removed_on_step(start_coords, end_coords):
     start_coords and end_coords.'''
     start_coords = Vector(start_coords)
     end_coords = Vector(end_coords)
-    number_of_steps = int(round(max(map(abs, end_coords - start_coords))))
+    number_of_steps = int(round(max(list(map(abs, end_coords - start_coords)))))
     direction = end_coords - start_coords
     jump = Vector(map(int, map(round, direction / number_of_steps)))
 
@@ -64,8 +64,8 @@ def add_coords_lists_to_set(coords_lists, coords_set):
                 coords_set.add(coords)
 
 
-directions = map(Vector, [[1, 0], [1, 1], [0, 1], [-1, 1],
-                          [-1, 0], [-1, -1], [0, -1], [1, -1]])
+directions = list(map(Vector, [[1, 0], [1, 1], [0, 1], [-1, 1],
+                               [-1, 0], [-1, -1], [0, -1], [1, -1]]))
 
 
 def get_legal_moves(ball_coords, man_coords, shape=(15, 19),
@@ -150,7 +150,7 @@ class AbstractBoard(object):
         if coords in self.speculative_legal_moves:
             possible_paths = self.speculative_legal_moves[coords]
             if len(possible_paths) > 1:
-                short_paths = filter(lambda j: len(j) == 1, possible_paths)
+                short_paths = list(filter(lambda j: len(j) == 1, possible_paths))
                 if not short_paths:
                     return {'conflicting_paths': (coords, possible_paths)}
                 steps = short_paths[0]
@@ -165,7 +165,7 @@ class AbstractBoard(object):
             self.speculative_legal_moves = get_legal_moves(
                 self.speculative_ball_coords, self.speculative_man_coords,
                 self.shape)
-            self.speculative_steps.extend(map(tuple, steps))
+            self.speculative_steps.extend(list(map(tuple, steps)))
             return {'speculative_marker': get_speculative_move_identifiers(
                 coords, self.speculative_steps)}
 
@@ -207,12 +207,14 @@ class AbstractBoard(object):
         if new_men:
             instructions = {'add': list(new_men)}
         else:
+            removals = []
+            for coords in self.speculative_step_removals:
+                removals.extend(coords)
             instructions = {'move_ball_to': self.ball_coords,
                             'move_ball_via': get_speculative_move_identifiers(
                                 tuple(self.ball_coords),
                                 self.speculative_steps),
-                            'remove': reduce(lambda j, k: j + k,
-                                             self.speculative_step_removals),
+                            'remove': removals,
                             'clear_transient': None}
         self.reset_speculation()
         return instructions
@@ -269,7 +271,7 @@ class AbstractBoard(object):
         self.reset_speculation()
 
         move_type, coords = self.ai.get_move()
-        print 'ai wants to move at', coords, move_type
+        print('ai wants to move at', coords, move_type)
         if move_type == 'move':
             self.speculative_move_ball_to(coords)
         elif move_type == 'play':

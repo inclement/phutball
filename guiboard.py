@@ -23,7 +23,6 @@ import random
 def sign(n):
     return 1 if n >= 0 else -1
 
-
 def coords_in_grid(coords, shape):
     x, y = coords
     if (x < 0 or y < 0 or x >= (shape[0]-1) or y >= (shape[1]-1)):
@@ -136,6 +135,7 @@ class LegalMoveMarker(Widget):
 class BoardInterface(BoxLayout):
     '''The widget for a whole board interface, intended to take up the
     whole screen.'''
+    
 
 
 class BoardContainer(AnchorLayout):
@@ -187,6 +187,7 @@ class Board(Widget):
                                                      'move_ball',
                                                      'toggle_man',
                                                      'dormant'])
+    touch_offset = NumericProperty(0)
 
     show_legal_moves = BooleanProperty(True)
 
@@ -292,7 +293,7 @@ class Board(Widget):
         for identifier in new_markers:
             if identifier not in existing_markers:
                 self.add_speculative_segment_marker(identifier)
-        for identifier in existing_markers.keys():
+        for identifier in list(existing_markers.keys()):
             if identifier not in new_markers:
                 self.remove_speculative_segment_marker(identifier)
 
@@ -319,7 +320,7 @@ class Board(Widget):
         self.remove_widget(marker)
 
     def clear_speculative_segment_markers(self):
-        for identifier in self.speculative_segment_markers.keys():
+        for identifier in list(self.speculative_segment_markers.keys()):
             self.remove_speculative_segment_marker(identifier)
 
     def add_man(self, coords):
@@ -370,7 +371,7 @@ class Board(Widget):
         self.remove_widget(marker)
 
     def clear_legal_move_markers(self):
-        for marker_coords in self.legal_move_markers.keys():
+        for marker_coords in list(self.legal_move_markers.keys()):
             marker = self.legal_move_markers.pop(marker_coords)
             self.remove_widget(marker)
 
@@ -388,10 +389,10 @@ class Board(Widget):
         if self.ball is not None:
             self.ball.pos = self.coords_to_pos(self.ball.coords)
             self.ball.size = self.cell_size
-        for man_coords, man in self.men.iteritems():
+        for man_coords, man in self.men.items():
             man.pos = self.coords_to_pos(man.coords)
             man.size = self.cell_size
-        for marker_coords, marker in self.legal_move_markers.iteritems():
+        for marker_coords, marker in self.legal_move_markers.items():
             marker.pos = self.coords_to_pos(marker.coords)
             marker.size = self.cell_size
         self.goal_rectangle_size = (Vector([self.grid[0], 2]) *
@@ -400,7 +401,7 @@ class Board(Widget):
         self.bottom_rectangle_pos = self.coords_to_pos((0, 0))
 
         cell_size = self.cell_size
-        for marker_coords, marker in self.speculative_segment_markers.iteritems():
+        for marker_coords, marker in self.speculative_segment_markers.items():
             start_coords = marker.start_coords
             end_coords = marker.end_coords
             start_pos = (Vector(self.coords_to_pos(start_coords)) +
@@ -420,9 +421,9 @@ class Board(Widget):
         for man_coords in self.men:
             man = self.men[man_coords]
             man.size = self.cell_size
-        for marker_coords, marker in self.legal_move_markers.iteritems():
+        for marker_coords, marker in self.legal_move_markers.items():
             marker.size = self.cell_size
-        for marker_coords, marker in self.speculative_segment_markers.iteritems():
+        for marker_coords, marker in self.speculative_segment_markers.items():
             start_coords = marker.start_coords
             end_coords = marker.end_coords
             start_pos = (Vector(self.coords_to_pos(start_coords)) +
@@ -438,7 +439,7 @@ class Board(Widget):
             self.ball.size = self.cell_size
             self.add_widget(self.ball)
 
-        centre_coords = map(int, Vector(self.grid)/2.0)
+        centre_coords = list(map(int, Vector(self.grid)/2.0))
         self.ball.pos = self.coords_to_pos(centre_coords)
         self.ball.coords = centre_coords
 
@@ -456,6 +457,7 @@ class Board(Widget):
         if touch is not self.touch:
             return
         coords = self.pos_to_coords(touch.pos)
+        coords = (coords[0], coords[1] + self.touch_offset)
         self.move_marker.coords = coords
 
     def on_touch_up(self, touch):
@@ -527,7 +529,7 @@ class Board(Widget):
         diff = pos - (self_pos + padding * cell_size)
         number_of_steps = diff / cell_size
 
-        return map(int, map(round, number_of_steps))
+        return tuple(map(int, map(round, number_of_steps)))
 
     def coords_to_pos(self, coords):
         '''Takes coords on the board grid, and converts to a screen
