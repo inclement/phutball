@@ -26,6 +26,7 @@ class PhutballManager(ScreenManager):
             new_screen = GameScreen(name='board')
             self.add_widget(new_screen)
         board = self.get_screen('board').children[0].board
+        board.reset()
         board.use_ai = ai
         self.current = 'board'
 

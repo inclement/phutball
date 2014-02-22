@@ -608,6 +608,7 @@ class Board(Widget):
         '''Clears all transient stones, markers etc.'''
         self.clear_transient_ui_elements()
         self.clear_men()
+        self.clear_legal_move_markers()
 
     def resync_with_abstractboard(self):
         ab = self.abstractboard
@@ -620,3 +621,9 @@ class Board(Widget):
 
     def sync_ball(self, *args):
         self.ball.pos = self.coords_to_pos(self.abstractboard.ball_coords)
+
+    def reset(self, *args):
+        self.abstractboard.reset()
+        self.clear_all_transient_widgets()
+        self.resync_with_abstractboard()
+        self.initialise_ball()
