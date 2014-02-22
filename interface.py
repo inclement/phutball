@@ -1,7 +1,15 @@
 '''Widgets for the full app interface.'''
 
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.actionbar import ActionBar
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, ObjectProperty
+
+class NavBar(ActionBar):
+    pass
+
+class PhutballInterface(BoxLayout):
+    manager = ObjectProperty()
 
 class PhutballManager(ScreenManager):
     previous = ListProperty([])
@@ -9,6 +17,8 @@ class PhutballManager(ScreenManager):
         '''Creates and moves to a new board screen.'''
         if not self.has_screen('board'):
             new_screen = GameScreen(name='board')
+            new_board = new_screen.children[0].children[0].board
+            new_board.use_ai = ai
             self.add_widget(new_screen)
         self.current = 'board'
 

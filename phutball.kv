@@ -1,6 +1,20 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<PhutballInterface>:
+    orientation: 'vertical'
+    manager: manager
+    NavBar:
+    PhutballManager:
+        id: manager
+
+<NavBar>:
+    on_previous: app.manager.go_back()
+    ActionView:
+        ActionPrevious:
+            title: ''
+        ActionOverflow:
+
 <PhutballManager>:
     HomeScreen:
 

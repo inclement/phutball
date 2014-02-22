@@ -135,11 +135,11 @@ class LegalMoveMarker(Widget):
 class BoardInterface(BoxLayout):
     '''The widget for a whole board interface, intended to take up the
     whole screen.'''
-    
 
 
 class BoardContainer(AnchorLayout):
     board = ObjectProperty()
+    use_ai = BooleanProperty(False)
 
 
 class Board(Widget):

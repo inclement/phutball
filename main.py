@@ -1,5 +1,5 @@
 from guiboard import BoardInterface
-from interface import PhutballManager
+from interface import PhutballManager, PhutballInterface
 
 from kivy.app import App
 from kivy.properties import ObjectProperty
@@ -11,9 +11,10 @@ class PhutballApp(App):
     manager = ObjectProperty()
     def build(self):
         self.bind(on_start=self.post_build_init)
-        manager = PhutballManager()
+        interface = PhutballInterface()
+        manager = interface.manager
         self.manager = manager
-        return manager
+        return interface
 
     def post_build_init(self,ev):
         if platform() == 'android':
