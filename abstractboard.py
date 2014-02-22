@@ -1,5 +1,6 @@
 from kivy.vector import Vector
 from ai import AI
+import json
 
 
 def get_speculative_move_identifiers(coords, steps):
@@ -122,6 +123,8 @@ class AbstractBoard(object):
         self.speculative_legal_moves = {}
         self.speculative_step_removals = []
         self.speculative_steps = []
+
+        self.current_player = 'top'
 
         if 'shape' is not None:
             self.shape = shape
@@ -311,3 +314,56 @@ class AbstractBoard(object):
                     string_elements.append(',')
             string_elements.append('\n')
         return ''.join(string_elements)
+
+    def serialise(self):
+        '''Serialises the board position (all stones, including speculative
+        moves) as json.
+
+        '''
+
+        return json.dumps(
+            {'shape': self.shape,
+             'ball_coords': self.ball_coords,
+             'man_coords': list(self.man_coords),
+             'current_player': self.current_player,
+             'legal_moves': list(self.legal_moves.items()),
+             'speculative_ball_coords': self.speculative_ball_coords,
+             'speculative_man_coords': list(self.speculative_man_coords),
+             'speculative_legal_moves': list(
+                 self.speculative_legal_moves.items()),
+             'speculative_step_removals': self.speculative_step_removals,
+             'speculative_steps': self.speculative_steps,
+             'other': '',
+             })
+
+    def save_state(self, filen):
+        '''Saves the state of self in the given file.'''
+        with open(filen, 'w') as fileh:
+            fileh.write(self.serialise())
+
+    def load_dict(self, d):
+        '''Sets the properties of self according to the dictionary.'''
+        if ('shape' not in d or
+            'ball_coords' not in d or
+            'man_coords' not in d or
+            'current_player' not in d):
+            raise Exception('Not enough information to load.')
+
+        self.shape = tuple(d['shape'])
+        self.ball_coords = tuple(d['ball_coords'])
+        self.man_coords = set([tuple(coords) for coords in d['man_coords']])
+        self.current_player = d['current_player']
+        self.legal_moves = get_legal_moves(
+            self.ball_coords, self.man_coords, self.shape)
+
+        # Speculative saving not implemented yet. 
+        self.reset_speculation()
+
+    def load_file(self, filen):
+        '''Loads json data from filen and sets the properties of self
+        appropriately.'''
+        with open(filen, 'r') as fileh:
+            data = json.load(fileh)
+        self.load_dict(data)
+                           
+        

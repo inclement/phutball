@@ -198,10 +198,11 @@ class Board(Widget):
         else:
             use_ai = False
         super(Board, self).__init__(*args, **kwargs)
-        Clock.schedule_once(self.initialise_ball, 0)
         self.abstractboard = AbstractBoard(shape=self.grid)
         self.abstractboard.reset()
         self.use_ai = use_ai
+        Clock.schedule_once(self.initialise_ball, 0)
+        #self.initialise_ball()
 
     def on_win(self, winner):
         VictoryPopup(winner=winner).open()
@@ -342,6 +343,11 @@ class Board(Widget):
             return
         man = self.men.pop(coords)
         self.remove_widget(man)
+
+    def clear_men(self):
+        '''Removes all men from the gui board.'''
+        for coords in list(self.men.keys()):
+            self.remove_man(coords)
 
     def toggle_man(self, coords):
         '''Toggles a man at the given coords.'''
@@ -496,6 +502,9 @@ class Board(Widget):
         self.clear_legal_move_markers()
         self.display_legal_moves()
 
+    def on_current_player(self, *args):
+        self.abstractboard.current_player = self.current_player
+
     def switch_current_player(self):
         self.current_player = {'top': 'bottom',
                                'bottom': 'top'}[self.current_player]
@@ -584,3 +593,30 @@ class Board(Widget):
             ydir *= -1
 
         self.grid_points = points
+
+    def save_position(self, filen):
+        '''Asks the AbstractBoard to save in the given filename.'''
+        self.abstractboard.save_state(filen)
+
+    def load_position(self, filen):
+        '''Tries to load position from the given filename.'''
+        self.abstractboard.load_file(filen)
+        self.resync_with_abstractboard()
+        
+
+    def clear_all_transient_widgets(self):
+        '''Clears all transient stones, markers etc.'''
+        self.clear_transient_ui_elements()
+        self.clear_men()
+
+    def resync_with_abstractboard(self):
+        ab = self.abstractboard
+        self.clear_all_transient_widgets()
+        self.shape = ab.shape
+        for coords in ab.man_coords:
+            self.add_man(coords)
+        self.display_legal_moves()
+        Clock.schedule_once(self.sync_ball, 0)
+
+    def sync_ball(self, *args):
+        self.ball.pos = self.coords_to_pos(self.abstractboard.ball_coords)
