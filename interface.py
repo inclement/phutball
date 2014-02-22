@@ -24,9 +24,9 @@ class PhutballManager(ScreenManager):
         '''Creates and moves to a new board screen.'''
         if not self.has_screen('board'):
             new_screen = GameScreen(name='board')
-            new_board = new_screen.children[0].children[0].board
-            new_board.use_ai = ai
             self.add_widget(new_screen)
+        board = self.get_screen('board').children[0].board
+        board.use_ai = ai
         self.current = 'board'
 
     def on_current(self, *args):
@@ -77,4 +77,21 @@ class GameScreen(Screen):
     
 
 class HomeScreen(Screen):
+    pass
+
+
+class ProblemChooserScreen(Screen):
+    pass
+
+
+class ProblemRow(GridLayout):
+    pass
+
+class ProblemButton(Button):
+    pass
+
+class ProblemLabel(Label):
+    pass
+
+class ProblemChooser(GridLayout):
     pass

@@ -1,22 +1,45 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<ProblemButton>:
+    background_color: (0, 1, 0, 1)
+
+<ProblemLabel>:
+    size_hint_y: None
+    height: sp(38)
+    font_size: sp(34)
+    
+
 <PhutballInterface>:
     orientation: 'vertical'
     manager: manager
+    actionbar: navbar
     NavBar:
+        id: navbar
     PhutballManager:
         id: manager
 
 <NavBar>:
-    on_previous: app.manager.go_back()
     ActionView:
         ActionPrevious:
             title: ''
+            on_release: app.manager.go_back()
         ActionOverflow:
+        ActionButton:
+            text: 'Save'
+            on_release: app.manager.try_save()
+        ActionButton:
+            text: 'Load'
+            on_release: app.manager.try_load()
 
 <PhutballManager>:
     HomeScreen:
+
+<ProblemChooserScreen>:
+    name: 'problemchooser'
+    GridLayout:
+        cols: 4
+        
 
 <HomeScreen>:
     name: 'home'
@@ -27,6 +50,7 @@
             height: dp(100)
             font_size: self.height
             text: 'Phutball'
+            color: (0, 0, 0, 1)
         Button:
             text: 'AI game'
             on_press:
@@ -34,7 +58,7 @@
         Button:
             text: 'Human game'
             on_press:
-                app.manager.new_board()
+                app.manager.new_board(ai=False)
         
 <GameScreen>:
     BoardInterface:
@@ -43,21 +67,22 @@
     text: 'Play man'
     canvas:
         Color:
-            rgba: 0, 0, 1, 0.5 + 0.4*self.anim_progress
+            rgba: 0, 0, 0.2 + 0.5*self.anim_progress, 0.5
         Rectangle:
-            pos: Vector(self.pos) + (0.1 - 0.05*self.anim_progress)*Vector(self.size)
-            size: (0.8 + 0.1*self.anim_progress)*Vector(self.size)
+            pos: Vector(self.pos)
+            size: Vector(self.size)
     Label:
         text: root.text
+        color: 0, 0, 0, 1
 
 <MoveButton>:
     text: 'Move ball'
     canvas:
         Color:
-            rgba: 0, 1, 0, 0.5 + 0.3*self.anim_progress
+            rgba: 0, 1, 0, 0.5
         Rectangle:
-            pos: Vector(self.pos) + (0.1 - 0.05*self.anim_progress)*Vector(self.size)
-            size: (0.8 + 0.1*self.anim_progress)*Vector(self.size)
+            pos: Vector(self.pos)
+            size: Vector(self.size)
     Label:
         text: root.text
 

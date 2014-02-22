@@ -1,3 +1,6 @@
+from kivy.core.window import Window
+Window.clearcolor = (1, 1, 1, 1)
+
 from guiboard import BoardInterface
 from interface import PhutballManager, PhutballInterface
 
