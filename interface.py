@@ -68,11 +68,8 @@ class PhutballManager(ScreenManager):
         screen = self.get_screen('board')
         board = screen.children[0].board
         board.load_position(filen)
-        
 
-            
         
-
 class GameScreen(Screen):
     '''Screen containing a BoardInterface'''
     
@@ -88,11 +85,14 @@ class ProblemChooserScreen(Screen):
 class ProblemRow(GridLayout):
     pass
 
+
 class ProblemButton(Button):
     pass
 
+
 class ProblemLabel(Label):
     pass
+
 
 class ProblemChooser(GridLayout):
     pass

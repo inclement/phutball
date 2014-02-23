@@ -65,9 +65,10 @@
 
 <PlayManButton>:
     text: 'Play man'
+    on_active: print 'play man {}'.format(self.active)
     canvas:
         Color:
-            rgba: 0, 0, 0.2 + 0.5*self.anim_progress, 0.5
+            rgba: 0.75-0.5*(self.anim_progress), 0.75-0.5*(self.anim_progress), 0.75, 1
         Rectangle:
             pos: Vector(self.pos)
             size: Vector(self.size)
@@ -75,11 +76,34 @@
         text: root.text
         color: 0, 0, 0, 1
 
+
+<ToggleModeButton>:
+    text: 'Toggle man'
+    canvas:
+        Color:
+            rgba: 0.75, 0.75-0.35*(self.anim_progress), 0.72+0.03*(1-self.anim_progress), 1
+        Rectangle:
+            pos: Vector(self.pos)
+            size: Vector(self.size)
+    Label:
+        text: root.text
+
+<ConfirmButton>:
+    text: 'Confirm'
+    canvas:
+        Color:
+            rgba: 0.75, 0.75-0.5*(self.anim_progress), 0.75-0.5*(self.anim_progress), 1
+        Rectangle:
+            pos: Vector(self.pos)
+            size: Vector(self.size)
+    Label:
+        text: root.text
+
 <MoveButton>:
     text: 'Move ball'
     canvas:
         Color:
-            rgba: 0, 1, 0, 0.5
+            rgba: 0.75-0.5*(self.anim_progress), 0.75, 0.75-0.5*(self.anim_progress), 1
         Rectangle:
             pos: Vector(self.pos)
             size: Vector(self.size)
@@ -95,6 +119,11 @@
         text: root.board.current_player + ' to play' if root.board else ''
         valign: 'middle'
         halign: 'center'
+        color: (0, 0, 0, 1)
+    ToggleModeButton:
+        id: togglemode
+        on_release: root.board.touch_mode = 'toggle_man'
+        active: True if root.touch_mode == 'toggle_man' else False
     PlayManButton:
         id: playman
         on_release: root.board.touch_mode = 'play_man'
@@ -103,10 +132,9 @@
         id: move
         on_release: root.board.touch_mode = 'move_ball'
         active: True if root.touch_mode == 'move_ball' else False
-    Button:
-        text: 'Confirm'
+    ConfirmButton:
         on_release: root.board.confirm_speculation()
-        background_color: 1, 0, 0, 1
+        active: root.board.can_confirm if root.board else False
 
 <MoveMakingMarker>:
     canvas:

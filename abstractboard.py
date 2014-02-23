@@ -333,6 +333,7 @@ class AbstractBoard(object):
                  self.speculative_legal_moves.items()),
              'speculative_step_removals': self.speculative_step_removals,
              'speculative_steps': self.speculative_steps,
+             'message': '',
              'other': '',
              })
 

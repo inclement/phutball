@@ -47,11 +47,18 @@ class ActiveButton(ButtonBehavior, BoxLayout):
             self.anim_to_inactive.start(self)
 
 
+class ConfirmButton(ActiveButton):
+    pass
+
 class MoveButton(ActiveButton):
     pass
 
 
 class PlayManButton(ActiveButton):
+    pass
+
+
+class ToggleModeButton(ActiveButton):
     pass
 
 
@@ -187,6 +194,7 @@ class Board(Widget):
                                                      'move_ball',
                                                      'toggle_man',
                                                      'dormant'])
+    can_confirm = BooleanProperty(False)
     touch_offset = NumericProperty(0)
 
     show_legal_moves = BooleanProperty(True)
@@ -352,6 +360,8 @@ class Board(Widget):
     def toggle_man(self, coords):
         '''Toggles a man at the given coords.'''
         coords = tuple(coords)
+        if coords == self.abstractboard.ball_coords:
+            return
         if coords in self.men:
             self.remove_man(coords)
         else:
