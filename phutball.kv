@@ -13,14 +13,15 @@
     text: self.board_message
     padding: sp(15), sp(15)
     size_hint: None, None
-    pos_hint: {'center_x': 0.5, 'top': 0.5}
-    width: 0.8*self.board_width 
+    pos_hint: {'center_x': 0.5, 'top': 0.4}
+    width: 0.9*self.board_width 
     text_size: self.width, None
     height: self.texture_size[1]
     valign: 'middle'
-    halign: 'center'
+    halign: 'left'
     color: 1, 1, 1, 1
     font_size: sp(18)
+    markup: True
     pos:
         (self.board.x + 0.5*(self.board.width - self.width),
         self.board.center_y - 0.1*self.board.height -
@@ -29,8 +30,8 @@
         Color:
             rgba: (0, 0, 0, 0.8) if self.text else (0, 0, 0, 0)
         Rectangle:
-            pos: self.pos
-            size: self.size
+            pos: Vector(self.pos) - Vector([sp(10), sp(10)])
+            size: Vector(self.size) + Vector([sp(20), sp(20)])
         
 
 <ThemedButton@Button>:
@@ -128,8 +129,8 @@
             ThemedButton:
                 text: 'Tutorial'
                 font_size: 40
-                on_release:
-                    app.manager.tutorial()
+                #on_release: app.manager.tutorial()
+                on_release: app.manager.new_board(from_file='tutorial2.phut')
             ThemedButton:
                 text: 'Puzzles'
                 font_size: 40
@@ -267,6 +268,7 @@
     size_hint_x: 0.8
     Label:
         text: root.winner + ' wins!'
+        color: 1, 1, 1, 1
         padding: 10, 10
         font_size: 100
         text_size: self.size
@@ -372,6 +374,7 @@
     on_size: self.calculate_lines(); self.reposition_ui_elements()
     on_grid: self.abstractboard.shape = self.grid
     on_can_confirm: print 'can confirm {}'.format(self.can_confirm)
+    on_touch_down: print self.abstractboard.ball_coords
     canvas:
         Color:
             rgba: 1, 1, 1, 1

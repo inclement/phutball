@@ -224,7 +224,7 @@ class Board(Widget):
         self.abstractboard = AbstractBoard(shape=self.grid)
         self.abstractboard.reset()
         self.use_ai = use_ai
-        Clock.schedule_once(self.initialise_ball, 0)
+#        Clock.schedule_once(self.initialise_ball, 0)
         #self.initialise_ball()
 
     def on_win(self, winner):
@@ -644,8 +644,11 @@ class Board(Widget):
             self.add_man(coords)
         self.display_legal_moves()
         Clock.schedule_once(self.sync_ball, 0)
+        print 'ab ball_coords are', ab.ball_coords
+        self.message = ab.message
 
     def sync_ball(self, *args):
+        print 'syncing ab ball_coords are', self.abstractboard.ball_coords
         self.ball.pos = self.coords_to_pos(self.abstractboard.ball_coords)
 
     def reset(self, *args):

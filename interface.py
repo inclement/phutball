@@ -20,7 +20,7 @@ class PhutballInterface(BoxLayout):
     actionbar = ObjectProperty()
 
 class PhutballManager(ScreenManager):
-    def new_board(self, ai=True, from_file=None, force_switch=False):
+    def new_board(self, ai=False, from_file=None, force_switch=False):
         '''Creates and moves to a new board screen.'''
         if not self.has_screen('board'):
             new_screen = GameScreen(name='board')
@@ -36,6 +36,8 @@ class PhutballManager(ScreenManager):
                 next = self.current
         board = self.get_screen(next).children[0].board
         board.reset()
+        if from_file is not None:
+            board.load_position(from_file)
         board.use_ai = ai
         self.go_to('board')
 
