@@ -1,0 +1,15 @@
+{"speculative_man_coords": [],
+"speculative_steps": [],
+"speculative_step_removals": [],
+"shape": [15, 19],
+"man_coords": [[5, 12], [5, 15], [6, 13], [11, 13]],
+"message":
+"This time there is no path to win in one play. You need to first place a new black stone.\n\nPlay a black stone to make a path to the [color=#dbebc3]green[/color] goal, then make another move to jump over it and win.",
+"current_player":
+"top",
+"speculative_legal_moves": [],
+"ball_coords": [9, 15],
+"legal_moves": [],
+"speculative_ball_coords": [9, 15],
+"other":
+""}

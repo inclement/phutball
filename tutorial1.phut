@@ -1,0 +1,15 @@
+{"speculative_man_coords": [[5, 4], [6, 7], [5, 6], [3, 2], [4, 3], [7, 8]],
+"speculative_steps": [[7, 9], [7, 11], [9, 13], [9, 15]],
+"speculative_step_removals": [[[7, 10]], [[8, 12]], [[9, 14]], [[9, 16]]],
+"shape": [15, 19],
+"man_coords": [[5, 4], [6, 7], [4, 3], [8, 12], [5, 6], [3, 2], [9, 16], [7, 10], [9, 14], [7, 8]],
+"message":
+"Goal: Move the white ball to the [color=#dbebc3]green[/color] goal at the top.\n\nThere are two kinds of move. First, tap to jump over any number of black stones. This time you can win in a single play!",
+"current_player":
+"top",
+"speculative_legal_moves": [],
+"ball_coords": [7, 9],
+"legal_moves": [[[9, 13], [[[7, 9], [7, 11]]]], [[3, 1], [[[7, 9], [7, 7], [5, 7], [5, 5], [5, 3], [3, 3]]]], [[5, 5], [[[7, 9], [7, 7], [5, 7]]]], [[9, 15], [[[7, 9], [7, 11], [9, 13]]]], [[5, 7], [[[7, 9], [7, 7]]]], [[7, 7], [[[7, 9]]]], [[3, 3], [[[7, 9], [7, 7], [5, 7], [5, 5], [5, 3]]]], [[9, 17], [[[7, 9], [7, 11], [9, 13], [9, 15]]]], [[7, 11], [[[7, 9]]]], [[5, 3], [[[7, 9], [7, 7], [5, 7], [5, 5]]]]],
+"speculative_ball_coords": [9, 17],
+"other":
+""}
