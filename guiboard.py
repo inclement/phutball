@@ -36,8 +36,8 @@ class ActiveButton(ButtonBehavior, BoxLayout):
     text = StringProperty('')
     anim_progress = NumericProperty(0)
     active = BooleanProperty(True)
-    anim_to_active = ObjectProperty(Animation(anim_progress=1, duration=0.2))
-    anim_to_inactive = ObjectProperty(Animation(anim_progress=0, duration=0.2))
+    anim_to_active = ObjectProperty(Animation(anim_progress=1, duration=0.1))
+    anim_to_inactive = ObjectProperty(Animation(anim_progress=0, duration=0.1))
 
     def on_active(self, *args):
         Animation.cancel_all(self)
@@ -46,19 +46,24 @@ class ActiveButton(ButtonBehavior, BoxLayout):
         else:
             self.anim_to_inactive.start(self)
 
+class ColourChangeButton(ActiveButton):
+    '''Active button that changes between two colours.'''
+    colour_before = ListProperty([0.3, 0.3, 0.3, 1])
+    colour_after = ListProperty([0.7, 0.7, 0.7, 1])
+    colour_diff = ListProperty([0, 0, 0, 0])
 
-class ConfirmButton(ActiveButton):
+class ConfirmButton(ColourChangeButton):
     pass
 
-class MoveButton(ActiveButton):
+
+class MoveButton(ColourChangeButton):
     pass
 
 
-class PlayManButton(ActiveButton):
+class PlayManButton(ColourChangeButton):
     pass
 
-
-class ToggleModeButton(ActiveButton):
+class ToggleModeButton(ColourChangeButton):
     pass
 
 
@@ -66,6 +71,7 @@ class InterfaceButtons(BoxLayout):
     board = ObjectProperty()
     mode = StringProperty('play_man')
     touch_mode = StringProperty('')
+    can_confirm = BooleanProperty(False)
 
 
 class MoveMakingMarker(Widget):

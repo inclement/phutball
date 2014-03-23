@@ -1,6 +1,31 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<VerticalSpacer@Widget>:
+    colour: [0.1, 0.1, 0.1]
+    gap: 0.03
+    size_hint_y: None
+    height: sp(3)
+    line_width: sp(1.1)
+    canvas:
+        Color:
+            rgb: self.colour
+        Line:
+            points: [self.x + self.gap*self.width, self.y + 0.5*self.height, self.x + (1.-self.gap)*self.width, self.y + 0.5*self.height]
+            width: self.line_width if self.line_width else 1
+
+<HorizontalSpacer@Widget>:
+    colour: [0.1, 0.1, 0.1]
+    gap: 0.03
+    size_hint_x: None
+    width: sp(3)
+    canvas:
+        Color:
+            rgb: self.colour
+        Line:
+            points: [self.x + 0.5*self.width, self.y + self.gap*self.height, self.x + 0.5*self.width, self.y + (1.-self.gap)*self.height]
+            width: sp(1.1)
+
 <ProblemButton>:
     background_color: (0, 1, 0, 1)
 
@@ -45,6 +70,12 @@
     name: 'home'
     BoxLayout:
         orientation: 'vertical'
+        Image:
+            source: 'gradient_vertical_down.png'
+            allow_stretch: True
+            keep_ratio: False
+            height: sp(8)
+            size_hint_y: None
         Label:
             size_hint_y: None
             height: dp(100)
@@ -63,78 +94,79 @@
 <GameScreen>:
     BoardInterface:
 
-<PlayManButton>:
-    text: 'Play man'
-    on_active: print 'play man {}'.format(self.active)
+<ColourChangeButton>:
+    colour_diff: Vector(self.colour_after) - Vector(self.colour_before)
     canvas:
         Color:
-            rgba: 0.75-0.5*(self.anim_progress), 0.75-0.5*(self.anim_progress), 0.75, 1
+            rgba: Vector(self.colour_before) + Vector(self.colour_diff) * self.anim_progress
         Rectangle:
             pos: Vector(self.pos)
             size: Vector(self.size)
+
+<PlayManButton>:
+    text: 'Play man'
+    on_active: print 'play man {}'.format(self.active)
+    colour_before: 1, 1, 1, 1
+    colour_after: 0.8, 0.8, 0.99, 1
     Label:
         text: root.text
         color: 0, 0, 0, 1
 
-
 <ToggleModeButton>:
     text: 'Toggle man'
-    canvas:
-        Color:
-            rgba: 0.75, 0.75-0.35*(self.anim_progress), 0.72+0.03*(1-self.anim_progress), 1
-        Rectangle:
-            pos: Vector(self.pos)
-            size: Vector(self.size)
+    colour_before: 1, 1, 1, 1
+    colour_after: 1, 0.76, 0.8, 1
     Label:
         text: root.text
+        color: 0, 0, 0, 1
 
 <ConfirmButton>:
     text: 'Confirm'
-    canvas:
-        Color:
-            rgba: 0.75, 0.75-0.5*(self.anim_progress), 0.75-0.5*(self.anim_progress), 1
-        Rectangle:
-            pos: Vector(self.pos)
-            size: Vector(self.size)
+    colour_before: 0.9, 0.9, 0.9, 1
+    colour_after: 0.99, 0.5, 0.5, 1
     Label:
         text: root.text
+        color: 0, 0, 0, 1
 
 <MoveButton>:
     text: 'Move ball'
-    canvas:
-        Color:
-            rgba: 0.75-0.5*(self.anim_progress), 0.75, 0.75-0.5*(self.anim_progress), 1
-        Rectangle:
-            pos: Vector(self.pos)
-            size: Vector(self.size)
+    colour_before: 1, 1, 1, 1
+    colour_after: 0.8, 0.99, 0.8, 1
     Label:
         text: root.text
+        color: 0, 0, 0, 1
 
 <InterfaceButtons>:
     mode: self.board.touch_mode if self.board else 'play_man'
     play_man_button: playman
     move_button: move
+    confirm_button: confirm
     Label:
         text_size: self.size
         text: root.board.current_player + ' to play' if root.board else ''
         valign: 'middle'
         halign: 'center'
         color: (0, 0, 0, 1)
+    HorizontalSpacer:
     ToggleModeButton:
         id: togglemode
         on_release: root.board.touch_mode = 'toggle_man'
         active: True if root.touch_mode == 'toggle_man' else False
+    HorizontalSpacer:
     PlayManButton:
         id: playman
         on_release: root.board.touch_mode = 'play_man'
         active: True if root.touch_mode == 'play_man' else False
+    HorizontalSpacer:
     MoveButton:
         id: move
         on_release: root.board.touch_mode = 'move_ball'
         active: True if root.touch_mode == 'move_ball' else False
+    HorizontalSpacer:
     ConfirmButton:
+        id: confirm
         on_release: root.board.confirm_speculation()
-        active: root.board.can_confirm if root.board else False
+        active: root.can_confirm
 
 <MoveMakingMarker>:
     canvas:
@@ -208,10 +240,33 @@
     BoardContainer:
         id: boardcontainer
         size_hint_y: None if Window.height > 1.2*Window.width else 3
-        height: Window.width
+        height: 1.1*Window.width
+    VerticalSpacer:
+        gap: 0
+        line_width: 1
+    FloatLayout:
+        size_hint_y: None
+        height: 0
+        Image:
+            source: 'gradient_vertical.png'
+            allow_stretch: True
+            keep_ratio: False
+            pos_hint: {'x': 0, 'y': 0}
+            size_hint: 1, None
+            height: sp(8)
+        Image:
+            source: 'gradient_vertical_down.png'
+            allow_stretch: True
+            keep_ratio: False
+            pos: self.parent.x, self.parent.top - self.height
+            pos_hint: {'x': 0}
+            top: boardcontainer.top
+            height: sp(8)
+            size_hint: 1, None
     InterfaceButtons:
         board: boardcontainer.board
         touch_mode: boardcontainer.board.touch_mode
+        can_confirm: boardcontainer.board.can_confirm
 
 <LegalMoveMarker>:
     canvas:
@@ -250,9 +305,11 @@
     portrait: True if self.aspect_ratio > 1.0 else False
     shape: (self.grid_x + 2*self.padding_x, self.grid_y + 2*self.padding_y)
     cell_size: (float(self.width) / self.shape_x, float(self.height) / self.shape_y)
+    can_confirm: bool(self.speculative_segment_markers)
     on_pos: self.calculate_lines(); self.reposition_ui_elements()
     on_size: self.calculate_lines(); self.reposition_ui_elements()
     on_grid: self.abstractboard.shape = self.grid
+    on_can_confirm: print 'can confirm {}'.format(self.can_confirm)
     canvas:
         Color:
             rgba: 1, 1, 1, 1
