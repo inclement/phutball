@@ -536,6 +536,7 @@ class Board(Widget):
         self.follow_instructions(instructions)
         self.check_for_win()
         self.switch_current_player()
+        self.touch_mode = 'play_man'
 
     def display_legal_moves(self, force=False):
         if self.show_legal_moves or force:

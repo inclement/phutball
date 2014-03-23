@@ -20,26 +20,42 @@ class PhutballInterface(BoxLayout):
     actionbar = ObjectProperty()
 
 class PhutballManager(ScreenManager):
-    def new_board(self, ai=True, from_file=None, ):
+    def new_board(self, ai=True, from_file=None, force_switch=False):
         '''Creates and moves to a new board screen.'''
         if not self.has_screen('board'):
             new_screen = GameScreen(name='board')
             self.add_widget(new_screen)
-        board = self.get_screen('board').children[0].board
+        elif force_switch and not self.has_screen('board2'):
+            new_screen = GameScreen(name='board2')
+            self.add_widget(new_screen)
+        next = 'board'
+        if self.current in ('board', 'board2'):
+            if force_switch:
+                next = {'board': 'board2', 'board2': 'board'}
+            else:
+                next = self.current
+        board = self.get_screen(next).children[0].board
         board.reset()
         board.use_ai = ai
-        self.current = 'board'
+        self.go_to('board')
+
+    def go_to(self, name, forward=True):
+        if self.transition.is_active:
+            return
+        self.transition = SlideTransition(direction='left')
+        if not forward:
+            self.transition = SlideTransition(direction='right')
+        self.current = name
+        self.transition = SlideTransition(direction='left')
 
     def on_current(self, *args):
         super(PhutballManager, self).on_current(*args)
 
     def go_back(self, *args):
-        if self.transition.is_active:
-            return
-        self.transition = SlideTransition(direction='right')
-        if self.current == 'board':
-            self.current = 'home'
-        self.transition = SlideTransition(direction='left')
+        target = 'home'
+        if self.current in ('board', 'board2'):
+            target = 'home'
+        self.go_to(target, forward=False)
 
     def try_save(self):
         '''Tries to save the current board in a new filename, automatically generated.

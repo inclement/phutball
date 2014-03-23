@@ -1,30 +1,32 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<Label>:
+    font_name: 'Hultog.ttf'
+
 <VerticalSpacer@Widget>:
     colour: [0.1, 0.1, 0.1]
     gap: 0.03
     size_hint_y: None
-    height: sp(3)
-    line_width: sp(1.1)
+    height: sp(1.1)
     canvas:
         Color:
             rgb: self.colour
         Line:
             points: [self.x + self.gap*self.width, self.y + 0.5*self.height, self.x + (1.-self.gap)*self.width, self.y + 0.5*self.height]
-            width: self.line_width if self.line_width else 1
+            width: self.height
 
 <HorizontalSpacer@Widget>:
     colour: [0.1, 0.1, 0.1]
     gap: 0.03
     size_hint_x: None
-    width: sp(3)
+    width: sp(1.1)
     canvas:
         Color:
             rgb: self.colour
         Line:
             points: [self.x + 0.5*self.width, self.y + self.gap*self.height, self.x + 0.5*self.width, self.y + (1.-self.gap)*self.height]
-            width: sp(1.1)
+            width: self.width
 
 <ProblemButton>:
     background_color: (0, 1, 0, 1)
@@ -76,12 +78,18 @@
             keep_ratio: False
             height: sp(8)
             size_hint_y: None
+        Widget:
+            size_hint_y: None
+            height: sp(15)
         Label:
             size_hint_y: None
             height: dp(100)
-            font_size: self.height
+            font_size: 0.85*self.height
             text: 'Phutball'
             color: (0, 0, 0, 1)
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
         Button:
             text: 'AI game'
             on_press:
