@@ -39,6 +39,12 @@ class PhutballManager(ScreenManager):
         board.use_ai = ai
         self.go_to('board')
 
+    def tutorial(self):
+        pass
+
+    def puzzles_index(self):
+        pass
+
     def go_to(self, name, forward=True):
         if self.transition.is_active:
             return

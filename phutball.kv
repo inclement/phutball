@@ -3,6 +3,7 @@
 
 <Label>:
     font_name: 'Hultog.ttf'
+    color: 0, 0, 0, 1
 
 <VerticalSpacer@Widget>:
     colour: [0.1, 0.1, 0.1]
@@ -90,14 +91,32 @@
             text_size: self.size
             halign: 'center'
             valign: 'middle'
-        Button:
-            text: 'AI game'
-            on_press:
-                app.manager.new_board(ai=True)
-        Button:
-            text: 'Human game'
-            on_press:
-                app.manager.new_board(ai=False)
+        GridLayout:
+            cols: 2
+            Button:
+                text: 'Tutorial'
+                font_size: 40
+                on_release:
+                    app.manager.tutorial()
+                background_normal: 'white_pixel.png'
+            Button:
+                text: 'Puzzles'
+                font_size: 40
+                on_release:
+                    app.manager.puzzles_index()
+                background_normal: 'white_pixel.png'
+            Button:
+                text: 'AI game'
+                font_size: 40
+                on_release:
+                    app.manager.new_board(ai=True)
+                background_normal: 'white_pixel.png'
+            Button:
+                text: 'Human game'
+                font_size: 40
+                on_release:
+                    app.manager.new_board(ai=False)
+                background_normal: 'white_pixel.png'
         
 <GameScreen>:
     BoardInterface:
