@@ -124,6 +124,8 @@ class AbstractBoard(object):
         self.speculative_step_removals = []
         self.speculative_steps = []
 
+        self.message = ''
+
         self.current_player = 'top'
 
         if 'shape' is not None:
@@ -359,6 +361,9 @@ class AbstractBoard(object):
 
         # Speculative saving not implemented yet. 
         self.reset_speculation()
+
+        if 'message' in d:
+            self.message = d['message']
 
     def load_file(self, filen):
         '''Loads json data from filen and sets the properties of self

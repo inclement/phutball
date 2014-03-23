@@ -4,6 +4,38 @@
 <Label>:
     font_name: 'Hultog.ttf'
     color: 0, 0, 0, 1
+    font_size: sp(18)
+
+<ActionButton>:
+    color: 1, 1, 1, 1
+
+<Message>:
+    text: self.board_message
+    padding: sp(15), sp(15)
+    size_hint: None, None
+    pos_hint: {'center_x': 0.5, 'top': 0.5}
+    width: 0.8*self.board_width 
+    text_size: self.width, None
+    height: self.texture_size[1]
+    valign: 'middle'
+    halign: 'center'
+    color: 1, 1, 1, 1
+    font_size: sp(18)
+    pos:
+        (self.board.x + 0.5*(self.board.width - self.width),
+        self.board.center_y - 0.1*self.board.height -
+        self.texture_size[0]) if self.board else (0, 0)
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, 0.8) if self.text else (0, 0, 0, 0)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        
+
+<ThemedButton@Button>:
+    background_normal: 'white_pixel.png'
+    background_down: 'blue_pixel.png'
 
 <VerticalSpacer@Widget>:
     colour: [0.1, 0.1, 0.1]
@@ -93,30 +125,26 @@
             valign: 'middle'
         GridLayout:
             cols: 2
-            Button:
+            ThemedButton:
                 text: 'Tutorial'
                 font_size: 40
                 on_release:
                     app.manager.tutorial()
-                background_normal: 'white_pixel.png'
-            Button:
+            ThemedButton:
                 text: 'Puzzles'
                 font_size: 40
                 on_release:
                     app.manager.puzzles_index()
-                background_normal: 'white_pixel.png'
-            Button:
+            ThemedButton:
                 text: 'AI game'
                 font_size: 40
                 on_release:
                     app.manager.new_board(ai=True)
-                background_normal: 'white_pixel.png'
-            Button:
+            ThemedButton:
                 text: 'Human game'
                 font_size: 40
                 on_release:
                     app.manager.new_board(ai=False)
-                background_normal: 'white_pixel.png'
         
 <GameScreen>:
     BoardInterface:
@@ -315,14 +343,21 @@
 
 <BoardContainer>:
     board: board
-    anchor_x: 'center'
-    anchor_y: 'center'
     aspect_ratio: float(self.height) / float(self.width)
-    Board:
-        id: board
-        size_hint: None, None
-        width: root.height / self.aspect_ratio if (self.portrait and self.aspect_ratio > root.aspect_ratio) else root.width
-        height: root.height if (self.portrait and self.aspect_ratio > root.aspect_ratio) else root.width * self.aspect_ratio
+    AnchorLayout:
+        size_hint: 1, 1
+        pos_hint: {'x': 0, 'y': 0}
+        anchor_x: 'center'
+        anchor_y: 'center'
+        Board:
+            id: board
+            size_hint: None, None
+            width: root.height / self.aspect_ratio if (self.portrait and self.aspect_ratio > root.aspect_ratio) else root.width
+            height: root.height if (self.portrait and self.aspect_ratio > root.aspect_ratio) else root.width * self.aspect_ratio
+    Message:
+        board: board
+        board_width: board.width
+        board_message: board.message
         
 
 <Board>:

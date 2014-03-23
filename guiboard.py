@@ -7,6 +7,8 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.image import Image
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.label import Label
 
 from kivy.uix.behaviors import ButtonBehavior
 
@@ -29,6 +31,11 @@ def coords_in_grid(coords, shape):
         return False
     return True
 
+
+class Message(Label):
+    board = ObjectProperty()
+    board_width = NumericProperty(100.)
+    board_message = StringProperty('')
 
 class ActiveButton(ButtonBehavior, BoxLayout):
     '''Widget accepting button input that also has an active property and
@@ -150,7 +157,7 @@ class BoardInterface(BoxLayout):
     whole screen.'''
 
 
-class BoardContainer(AnchorLayout):
+class BoardContainer(FloatLayout):
     board = ObjectProperty()
     use_ai = BooleanProperty(False)
 
@@ -193,6 +200,8 @@ class Board(Widget):
     use_ai = BooleanProperty(False)
     move_marker = ObjectProperty()
     touch = ObjectProperty(None, allownone=True)
+
+    message = StringProperty('')
 
     current_player = OptionProperty('top', options=['top',
                                                     'bottom'])
