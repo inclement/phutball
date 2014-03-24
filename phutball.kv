@@ -1,6 +1,45 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<RulesScreen>:
+    ScrollView:
+        scroll_distance: 3
+        scroll_timeout: 10
+        do_scroll_x: False
+        GridLayout:
+            size_hint_y: None
+            height: rules.height + sp(60) 
+            cols: 1
+            on_touch_down: print 'gl height is', self.height
+            Label:
+                size_hint_y: None
+                height: sp(60)
+                font_size: 40
+                text: 'Rules'
+            Label:
+                id: rules
+                size_hint_y: None
+                height: self.texture_size[1] + sp(30)
+                padding_y: sp(15)
+                padding_x: sp(10)
+                text_size: self.width, None
+                on_touch_down: print 'label height is', self.height
+                text:
+                    '''Phutball (also known as Philosopher\'s football) is a
+                    board game for two people. It is played on a grid, 
+                    usually 15x19 though other sizes are possible.\n
+                    The object game is to get the \'ball\', a white stone,
+                    to the first or second lines of the grid on your
+                    opponent\'s side of the board.\n
+                    Players take turns to make a move. In their turn, a
+                    player may make one of two kinds of move;\n
+                    1) Place a new black stone on any empty grid point.\n
+                    2) Jump the white stone over any number of black stones,
+                    any number of times, as long as it moves in a straight
+                    line each time it jumps.\n
+                    A player wins if the white ball is in his opponent\'s
+                    goal at the end of his turn...and his opponent loses.'''
+                        
 <Label>:
     font_name: 'Hultog.ttf'
     color: 0, 0, 0, 1
@@ -28,7 +67,7 @@
         self.texture_size[0]) if self.board else (0, 0)
     canvas.before:
         Color:
-            rgba: (0, 0, 0, 0.8) if self.text else (0, 0, 0, 0)
+            rgba: (0, 0, 0, 0.7) if self.text else (0, 0, 0, 0)
         Rectangle:
             pos: Vector(self.pos) - Vector([sp(10), sp(10)])
             size: Vector(self.size) + Vector([sp(20), sp(20)])
@@ -37,6 +76,7 @@
 <ThemedButton@Button>:
     background_normal: 'white_pixel.png'
     background_down: 'blue_pixel.png'
+
 
 <VerticalSpacer@Widget>:
     colour: [0.1, 0.1, 0.1]
@@ -146,6 +186,14 @@
                 font_size: 40
                 on_release:
                     app.manager.new_board(ai=False)
+            ThemedButton:
+                text: 'Rules'
+                font_size: 40
+                on_release:
+                    app.manager.rules()
+            ThemedButton:
+                text: 'Settings'
+                font_size: 40
         
 <GameScreen>:
     BoardInterface:
@@ -292,7 +340,7 @@
             width: 2
 
 <BoardInterface>:
-    orientation: 'vertical'
+    orientation: 'vertical' #if Window.height > Window.width else 'horizontal'
     board: boardcontainer.board
     BoardContainer:
         id: boardcontainer
@@ -321,6 +369,7 @@
             height: sp(8)
             size_hint: 1, None
     InterfaceButtons:
+        orientation: 'horizontal' #if Window.height > Window.width else 'vertical'
         board: boardcontainer.board
         touch_mode: boardcontainer.board.touch_mode
         can_confirm: boardcontainer.board.can_confirm

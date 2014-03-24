@@ -1,5 +1,6 @@
 '''Widgets for the full app interface.'''
 
+from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.actionbar import ActionBar
 from kivy.uix.gridlayout import GridLayout
@@ -47,6 +48,12 @@ class PhutballManager(ScreenManager):
     def puzzles_index(self):
         pass
 
+    def rules(self):
+        if not self.has_screen('rules'):
+            new_screen = RulesScreen(name='rules')
+            self.add_widget(new_screen)
+        self.go_to('rules')
+
     def go_to(self, name, forward=True):
         if self.transition.is_active:
             return
@@ -60,6 +67,10 @@ class PhutballManager(ScreenManager):
         super(PhutballManager, self).on_current(*args)
 
     def go_back(self, *args):
+        popup = App.get_running_app().popup
+        if popup:
+            popup.dismiss()
+            return
         target = 'home'
         if self.current in ('board', 'board2'):
             target = 'home'
@@ -99,6 +110,10 @@ class GameScreen(Screen):
     
 
 class HomeScreen(Screen):
+    pass
+
+
+class RulesScreen(Screen):
     pass
 
 

@@ -12,6 +12,7 @@ from kivy.utils import platform
 
 class PhutballApp(App):
     manager = ObjectProperty()
+    popup = ObjectProperty(None, allownone=True)
     def build(self):
         self.bind(on_start=self.post_build_init)
         interface = PhutballInterface()

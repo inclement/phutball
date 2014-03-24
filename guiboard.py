@@ -212,6 +212,11 @@ class Board(Widget):
     can_confirm = BooleanProperty(False)
     touch_offset = NumericProperty(0)
 
+    game_mode = StringProperty('normal')
+    '''Property used to know what to do at the end of the game, e.g.
+    return to menu, offer a new game, or more forward in the tutorials
+    or puzzles.'''
+
     show_legal_moves = BooleanProperty(True)
 
     def __init__(self, *args, **kwargs):
@@ -418,7 +423,7 @@ class Board(Widget):
 
         '''
         if self.ball is not None:
-            self.ball.pos = self.coords_to_pos(self.ball.coords)
+            self.ball.pos = self.coords_to_pos(self.abstractboard.ball_coords)
             self.ball.size = self.cell_size
         for man_coords, man in self.men.items():
             man.pos = self.coords_to_pos(man.coords)
@@ -656,3 +661,4 @@ class Board(Widget):
         self.clear_all_transient_widgets()
         self.resync_with_abstractboard()
         self.initialise_ball()
+        self.message = ''
