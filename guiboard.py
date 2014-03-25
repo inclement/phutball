@@ -1,3 +1,4 @@
+from kivy.app import App
 from kivy.vector import Vector
 from kivy.event import EventDispatcher
 from kivy.animation import Animation
@@ -21,6 +22,7 @@ from kivy.clock import Clock
 from abstractboard import AbstractBoard
 
 import random
+from os.path import exists
 
 def sign(n):
     return 1 if n >= 0 else -1
@@ -31,11 +33,33 @@ def coords_in_grid(coords, shape):
         return False
     return True
 
+class SingularPopup(ModalView):
+    def __init__(self, **kwargs):
+        popup = App.get_running_app().popup
+        if popup is not None:
+            popup.dismiss()
+        super(SingularPopup, self).__init__(**kwargs)
+        App.get_running_app().popup = self
+
+class NextTutorialPopup(SingularPopup):
+    number = StringProperty('')
+    next_file = StringProperty('')
+    next_mode = StringProperty('')
+
+
+class FinishedTutorialsPopup(SingularPopup):
+    number = StringProperty('')
+
+
+class PlayAgainPopup(SingularPopup):
+    ai = BooleanProperty(False)
+
 
 class Message(Label):
     board = ObjectProperty()
     board_width = NumericProperty(100.)
     board_message = StringProperty('')
+
 
 class ActiveButton(ButtonBehavior, BoxLayout):
     '''Widget accepting button input that also has an active property and
@@ -233,7 +257,24 @@ class Board(Widget):
         #self.initialise_ball()
 
     def on_win(self, winner):
-        VictoryPopup(winner=winner).open()
+        mode = self.game_mode
+        if mode[:8] == 'tutorial':
+            number = int(mode[8:]) + 1
+            next_file = 'tutorial{}.phut'.format(number)
+            next_mode = 'tutorial{}'.format(number)
+            print 'next file is', next_file, exists(next_file)
+            if exists(next_file):
+                NextTutorialPopup(number=str(number-1),
+                                  next_file=next_file,
+                                  next_mode=next_mode).open()
+            else:
+                FinishedTutorialsPopup(number=str(number)).open()
+        elif mode == 'ainormal':
+            PlayAgainPopup(ai=True).open()
+        else:
+            PlayAgainPopup(ai=False).open()
+        
+        
 
     def on_touch_mode(self, *args):
         mode = self.touch_mode

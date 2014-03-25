@@ -21,7 +21,8 @@ class PhutballInterface(BoxLayout):
     actionbar = ObjectProperty()
 
 class PhutballManager(ScreenManager):
-    def new_board(self, ai=False, from_file=None, force_switch=False):
+    def new_board(self, ai=False, from_file=None, force_switch=False,
+                  mode='normal'):
         '''Creates and moves to a new board screen.'''
         if not self.has_screen('board'):
             new_screen = GameScreen(name='board')
@@ -32,18 +33,20 @@ class PhutballManager(ScreenManager):
         next = 'board'
         if self.current in ('board', 'board2'):
             if force_switch:
-                next = {'board': 'board2', 'board2': 'board'}
+                next = {'board': 'board2', 'board2': 'board'}[self.current]
             else:
                 next = self.current
         board = self.get_screen(next).children[0].board
         board.reset()
+        board.game_mode = mode
         if from_file is not None:
             board.load_position(from_file)
         board.use_ai = ai
-        self.go_to('board')
+        self.go_to(next)
 
     def tutorial(self):
-        pass
+        self.new_board(from_file='tutorial1.phut',
+                       mode='tutorial1')
 
     def puzzles_index(self):
         pass
@@ -70,11 +73,13 @@ class PhutballManager(ScreenManager):
         popup = App.get_running_app().popup
         if popup:
             popup.dismiss()
-            return
         target = 'home'
         if self.current in ('board', 'board2'):
             target = 'home'
         self.go_to(target, forward=False)
+
+    def go_home(self, *args):
+        self.go_to('home', forward=False)
 
     def try_save(self):
         '''Tries to save the current board in a new filename, automatically generated.

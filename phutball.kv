@@ -1,6 +1,109 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
 
+<PopupButton@Button>:
+    canvas:
+        Color:
+            rgba: 0.2, 0.2, 0.2, 1
+        Line:
+            rectangle: [self.x, self.y, self.width, self.height]
+            width: 2
+
+<NextTutorialPopup>:
+    size_hint: None, None
+    width: min(sp(200), 0.9*Window.width)
+    height: sp(150)
+    auto_dismiss: False
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            size_hint_y: None
+            height: sp(40)
+            text: '[color=#dbebc3]You win![/color]'
+            markup: True
+            halign: 'center'
+            font_size: sp(50)
+        Label:
+            size_hint_y: None
+            height: sp(40)
+            text: 'Tutorial {} complete!'.format(root.number)
+            text_size: self.size
+            padding: sp(10), sp(10)
+        BoxLayout:
+            PopupButton:
+                size_hint_x: 0.25
+                size_hint_y: None
+                height: sp(40)
+                text: 'Menu'
+                on_release: app.manager.go_home(); root.dismiss()
+            PopupButton:
+                size_hint_x: 0.75
+                size_hint_y: None
+                height: sp(40)
+                text: 'Next tutorial'
+                on_release: app.manager.new_board(from_file=root.next_file, mode=root.next_mode, force_switch=True); root.dismiss()
+
+<FinishedTutorialsPopup>:
+    size_hint: None, None
+    width: min(sp(200), 0.9*Window.width)
+    height: sp(110)
+    auto_dismiss: False
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            size_hint_y: None
+            height: sp(40)
+            text: '[color=#dbebc3]You win![/color]'
+            markup: True
+            halign: 'center'
+            font_size: sp(50)
+        Label:
+            size_hint_y: None
+            height: sp(40)
+            text: 'You\'ve finished all the tutorials!'
+            text_size: self.size
+            padding: sp(10), sp(10)
+        PopupButton:
+            size_hint_y: None
+            height: sp(40)
+            text: 'Go home'
+            on_release: app.manager.go_home(); root.dismiss()
+
+<PlayAgainPopup>:
+    size_hint: None, None
+    width: min(sp(200), 0.9*Window.width)
+    height: sp(110)
+    auto_dismiss: False
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            size_hint_y: None
+            height: sp(40)
+            text: '[color=#dbebc3]You win![/color]'
+            markup: True
+            halign: 'center'
+            font_size: sp(50)
+        Label:
+            size_hint_y: None
+            height: sp(40)
+            text: 'Would you like to play again?'
+            text_size: self.size
+            padding: sp(10), sp(10)
+        BoxLayout:
+            PopupButton:
+                size_hint_x: 0.25
+                size_hint_y: None
+                height: sp(40)
+                text: 'Home'
+                on_release: app.manager.go_home(); root.dismiss()
+            PopupButton:
+                size_hint_x: 0.25
+                size_hint_y: None
+                height: sp(40)
+                text: 'Play again'
+                on_release: app.manager.new_board(ai=root.ai, force_switch=True); root.dismiss()
+
+
 <RulesScreen>:
     ScrollView:
         scroll_distance: 3
@@ -28,7 +131,7 @@
                     '''Phutball (also known as Philosopher\'s football) is a
                     board game for two people. It is played on a grid, 
                     usually 15x19 though other sizes are possible.\n
-                    The object game is to get the \'ball\', a white stone,
+                    The object of the game is to get the \'ball\', a white stone,
                     to the first or second lines of the grid on your
                     opponent\'s side of the board.\n
                     Players take turns to make a move. In their turn, a
@@ -169,8 +272,7 @@
             ThemedButton:
                 text: 'Tutorial'
                 font_size: 40
-                #on_release: app.manager.tutorial()
-                on_release: app.manager.new_board(from_file='tutorial2.phut')
+                on_release: app.manager.tutorial()
             ThemedButton:
                 text: 'Puzzles'
                 font_size: 40
@@ -180,7 +282,7 @@
                 text: 'AI game'
                 font_size: 40
                 on_release:
-                    app.manager.new_board(ai=True)
+                    app.manager.new_board(ai=True, mode='ainormal')
             ThemedButton:
                 text: 'Human game'
                 font_size: 40
