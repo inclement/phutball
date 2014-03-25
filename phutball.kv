@@ -11,25 +11,30 @@
 
 <NextTutorialPopup>:
     size_hint: None, None
-    width: min(sp(200), 0.9*Window.width)
-    height: sp(150)
+    width: min(sp(400), 0.9*Window.width)
+    height: sp(160)
     auto_dismiss: False
     BoxLayout:
         orientation: 'vertical'
         Label:
             size_hint_y: None
-            height: sp(40)
+            height: sp(60)
             text: '[color=#dbebc3]You win![/color]'
             markup: True
             halign: 'center'
-            font_size: sp(50)
+            font_size: sp(40)
         Label:
             size_hint_y: None
-            height: sp(40)
+            height: sp(60)
             text: 'Tutorial {} complete!'.format(root.number)
             text_size: self.size
+            halign: 'center'
+            validn: 'middle'
             padding: sp(10), sp(10)
+            color: 1, 1, 1, 1
         BoxLayout:
+            size_hint_y: None
+            height: sp(40)
             PopupButton:
                 size_hint_x: 0.25
                 size_hint_y: None
@@ -45,24 +50,27 @@
 
 <FinishedTutorialsPopup>:
     size_hint: None, None
-    width: min(sp(200), 0.9*Window.width)
-    height: sp(110)
+    width: min(sp(400), 0.9*Window.width)
+    height: sp(140)
     auto_dismiss: False
     BoxLayout:
         orientation: 'vertical'
         Label:
             size_hint_y: None
-            height: sp(40)
+            height: sp(60)
             text: '[color=#dbebc3]You win![/color]'
             markup: True
             halign: 'center'
-            font_size: sp(50)
+            font_size: sp(40)
         Label:
             size_hint_y: None
             height: sp(40)
             text: 'You\'ve finished all the tutorials!'
             text_size: self.size
+            halign: 'center'
+            valign: 'middle'
             padding: sp(10), sp(10)
+            color: 1, 1, 1, 1
         PopupButton:
             size_hint_y: None
             height: sp(40)
@@ -71,25 +79,28 @@
 
 <PlayAgainPopup>:
     size_hint: None, None
-    width: min(sp(200), 0.9*Window.width)
-    height: sp(110)
+    width: min(sp(400), 0.9*Window.width)
+    height: sp(160)
     auto_dismiss: False
     BoxLayout:
         orientation: 'vertical'
         Label:
             size_hint_y: None
-            height: sp(40)
+            height: sp(60)
             text: '[color=#dbebc3]You win![/color]'
             markup: True
             halign: 'center'
-            font_size: sp(50)
+            font_size: sp(40)
         Label:
             size_hint_y: None
-            height: sp(40)
+            height: sp(60)
             text: 'Would you like to play again?'
             text_size: self.size
             padding: sp(10), sp(10)
+            color: 1, 1, 1, 1
         BoxLayout:
+            height: sp(40)
+            size_hint_y: None
             PopupButton:
                 size_hint_x: 0.25
                 size_hint_y: None
