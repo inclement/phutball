@@ -697,9 +697,14 @@ class Board(Widget):
         print 'syncing ab ball_coords are', self.abstractboard.ball_coords
         self.ball.pos = self.coords_to_pos(self.abstractboard.ball_coords)
 
-    def reset(self, *args):
+    def reset(self, *args, **kwargs):
         self.abstractboard.reset()
         self.clear_all_transient_widgets()
+        #self.clear_legal_move_markers()
         self.resync_with_abstractboard()
         self.initialise_ball()
         self.message = ''
+        self.touch_mode = (kwargs['touch_mode'] if 'touch_mode' in kwargs
+                           else 'play_man')
+        self.game_mode = (kwargs['game_mode'] if 'game_mode' in kwargs
+                          else 'normal')
