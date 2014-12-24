@@ -260,7 +260,7 @@ class Board(Widget):
         mode = self.game_mode
         if mode[:8] == 'tutorial':
             number = int(mode[8:]) + 1
-            next_file = 'tutorial{}.phut'.format(number)
+            next_file = 'puzzles/dir01_tutorials/tutorial{}.phut'.format(number)
             next_mode = 'tutorial{}'.format(number)
             print 'next file is', next_file, exists(next_file)
             if exists(next_file):
@@ -273,8 +273,6 @@ class Board(Widget):
             PlayAgainPopup(ai=True).open()
         else:
             PlayAgainPopup(ai=False).open()
-        
-        
 
     def on_touch_mode(self, *args):
         mode = self.touch_mode
