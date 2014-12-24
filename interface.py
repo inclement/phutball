@@ -7,7 +7,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
-from kivy.properties import ListProperty, ObjectProperty
+from kivy.properties import ListProperty, ObjectProperty, StringProperty
 
 from os.path import exists
 from glob import glob
@@ -22,7 +22,7 @@ class PhutballInterface(BoxLayout):
 
 class PhutballManager(ScreenManager):
     def new_board(self, ai=False, from_file=None, force_switch=False,
-                  mode='normal'):
+                  touch_mode='play_man', mode='normal'):
         '''Creates and moves to a new board screen.'''
         if not self.has_screen('board'):
             new_screen = GameScreen(name='board')
@@ -37,19 +37,22 @@ class PhutballManager(ScreenManager):
             else:
                 next = self.current
         board = self.get_screen(next).children[0].board
-        board.reset()
-        board.game_mode = mode
+        board.reset(touch_mode=touch_mode, game_mode=mode)
         if from_file is not None:
             board.load_position(from_file)
         board.use_ai = ai
         self.go_to(next)
 
     def tutorial(self):
-        self.new_board(from_file='tutorial1.phut',
+        self.new_board(from_file='puzzles/dir01_tutorials/tutorial1.phut',
                        mode='tutorial1')
 
     def puzzles_index(self):
-        pass
+        if not self.has_screen('puzzles_index'):
+            new_screen = ProblemChooserScreen()
+            new_screen.populate()
+            self.add_widget(new_screen)
+        self.go_to('puzzles_index')
 
     def rules(self):
         if not self.has_screen('rules'):
@@ -123,12 +126,22 @@ class RulesScreen(Screen):
 
 
 class ProblemChooserScreen(Screen):
-    pass
+    chooser_container = ObjectProperty()
+    def populate(self):
+        filens = glob('puzzles/dir*')
+        numbers = [int(name.split('_')[0]) for name in filens]
+        argsort = [i for i, x in sorted(enumerate(numbers),
+                                        key=lambda j: j[1])]
+
+    def new_problem_set(self, filen):
+        pass
+        
 
 
-class ProblemRow(GridLayout):
-    pass
-
+class ProblemRow(BoxLayout):
+    title = StringProperty('')
+    identifier = StringProperty('')
+    buttons = ObjectProperty()
 
 class ProblemButton(Button):
     pass
