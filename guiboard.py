@@ -53,6 +53,7 @@ class FinishedTutorialsPopup(SingularPopup):
 
 class PlayAgainPopup(SingularPopup):
     ai = BooleanProperty(False)
+    winner_text = StringProperty('')
 
 
 class Message(Label):
@@ -257,6 +258,8 @@ class Board(Widget):
         #self.initialise_ball()
 
     def on_win(self, winner):
+        # import ipdb
+        # ipdb.set_trace()
         mode = self.game_mode
         if mode[:8] == 'tutorial':
             number = int(mode[8:]) + 1
@@ -270,7 +273,10 @@ class Board(Widget):
             else:
                 FinishedTutorialsPopup(number=str(number)).open()
         elif mode == 'ainormal':
-            PlayAgainPopup(ai=True).open()
+            winner_text = {
+                'top': '[color=#dbebc3]You win![/color]',
+                'bottom': '[color=#ffcab2]You lose[/color]'}[winner]
+            PlayAgainPopup(ai=True, winner_text=winner_text).open()
         else:
             PlayAgainPopup(ai=False).open()
 

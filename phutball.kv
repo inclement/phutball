@@ -88,7 +88,7 @@
         Label:
             size_hint_y: None
             height: sp(60)
-            text: '[color=#dbebc3]You win![/color]'
+            text: root.winner_text
             markup: True
             halign: 'center'
             font_size: sp(40)
@@ -296,11 +296,11 @@
                 text: 'Tutorial'
                 font_size: 40
                 on_release: app.manager.tutorial()
-            ThemedButton:
-                text: 'Puzzles'
-                font_size: 40
-                on_release:
-                    app.manager.puzzles_index()
+            # ThemedButton:
+            #     text: 'Puzzles'
+            #     font_size: 40
+            #     on_release:
+            #         app.manager.puzzles_index()
             ThemedButton:
                 text: 'AI game'
                 font_size: 40
@@ -376,11 +376,11 @@
         valign: 'middle'
         halign: 'center'
         color: (0, 0, 0, 1)
-    HorizontalSpacer:
-    ToggleModeButton:
-        id: togglemode
-        on_release: root.board.touch_mode = 'toggle_man'
-        active: True if root.touch_mode == 'toggle_man' else False
+    # HorizontalSpacer:
+    # ToggleModeButton:
+    #     id: togglemode
+    #     on_release: root.board.touch_mode = 'toggle_man'
+    #     active: True if root.touch_mode == 'toggle_man' else False
     HorizontalSpacer:
     PlayManButton:
         id: playman
