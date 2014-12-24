@@ -278,7 +278,9 @@ class Board(Widget):
                 'bottom': '[color=#ffcab2]You lose[/color]'}[winner]
             PlayAgainPopup(ai=True, winner_text=winner_text).open()
         else:
-            PlayAgainPopup(ai=False).open()
+            winner_text = '[color=#ffffff]{} player wins[/color]'.format(
+                winner)
+            PlayAgainPopup(ai=False, winner_text=winner_text).open()
 
     def on_touch_mode(self, *args):
         mode = self.touch_mode
