@@ -1,0 +1,3 @@
+rules_text = '''
+Phutball (also known as Philosopher\'s football) is a board game for two people. It is played on a grid, usually 15x19 though other sizes are possible.\n The object of the game is to get the \'ball\', a white stone, to the first or second lines of the grid on your opponent\'s side of the board.\n Players take turns to make a move. In their turn, a player may make one of two kinds of move;\n 1) Place a new black stone on any empty grid point.\n 2) Jump the white stone over any number of black stones, any number of times, as long as it moves in a straight line each time it jumps.\n A player wins if the white ball is in his opponent\'s goal at the end of his turn...and his opponent loses.
+'''
