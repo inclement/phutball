@@ -234,6 +234,7 @@ class AbstractBoard(object):
     def reset(self, *args):
         self.man_coords = set()
         self.ball_coords = (0, 0)
+        self.legal_moves = []
         self.reset_speculation()
 
     def add_man(self, coords):
