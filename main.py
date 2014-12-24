@@ -1,3 +1,4 @@
+
 from kivy.core.window import Window
 Window.clearcolor = (1, 1, 1, 1)
 
