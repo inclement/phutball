@@ -1,5 +1,6 @@
 #:import Window kivy.core.window.Window
 #:import Vector kivy.vector.Vector
+#:import rules_text rules_text
 
 <PopupButton@Button>:
     canvas:
@@ -51,7 +52,7 @@
 <FinishedTutorialsPopup>:
     size_hint: None, None
     width: min(sp(400), 0.9*Window.width)
-    height: sp(140)
+    height: sp(160)
     auto_dismiss: False
     BoxLayout:
         orientation: 'vertical'
@@ -64,7 +65,7 @@
             font_size: sp(40)
         Label:
             size_hint_y: None
-            height: sp(40)
+            height: sp(60)
             text: 'You\'ve finished all the tutorials!'
             text_size: self.size
             halign: 'center'
@@ -95,6 +96,8 @@
             size_hint_y: None
             height: sp(60)
             text: 'Would you like to play again?'
+            halign: 'center'
+            valign: 'middle'
             text_size: self.size
             padding: sp(10), sp(10)
             color: 1, 1, 1, 1
@@ -138,21 +141,7 @@
                 padding_x: sp(10)
                 text_size: self.width, None
                 on_touch_down: print 'label height is', self.height
-                text:
-                    '''Phutball (also known as Philosopher\'s football) is a
-                    board game for two people. It is played on a grid, 
-                    usually 15x19 though other sizes are possible.\n
-                    The object of the game is to get the \'ball\', a white stone,
-                    to the first or second lines of the grid on your
-                    opponent\'s side of the board.\n
-                    Players take turns to make a move. In their turn, a
-                    player may make one of two kinds of move;\n
-                    1) Place a new black stone on any empty grid point.\n
-                    2) Jump the white stone over any number of black stones,
-                    any number of times, as long as it moves in a straight
-                    line each time it jumps.\n
-                    A player wins if the white ball is in his opponent\'s
-                    goal at the end of his turn...and his opponent loses.'''
+                text: rules_text.rules_text
                         
 <Label>:
     font_name: 'Hultog.ttf'
@@ -251,10 +240,33 @@
     HomeScreen:
 
 <ProblemChooserScreen>:
-    name: 'problemchooser'
-    GridLayout:
-        cols: 4
-        
+    name: 'puzzles_index'
+    chooser_container: container
+    ScrollView:
+        GridLayout:
+            id: container
+            cols: 1
+      
+<ProblemRow>:
+    height: sp(80)
+    buttons: buttons_container
+    canvas:
+        Color:
+            rgba: 0, 0, 0.6, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    Label:
+        text: root.name
+    BoxLayout:
+        id: buttons_container
+
+<ProblemButton>:
+    canvas:
+        Color:
+            rgba: 0, 1, 0, 1
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(5)]
 
 <HomeScreen>:
     name: 'home'
