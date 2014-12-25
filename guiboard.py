@@ -45,6 +45,9 @@ class NextTutorialPopup(SingularPopup):
     number = StringProperty('')
     next_file = StringProperty('')
     next_mode = StringProperty('')
+    winner_text = StringProperty('')
+    tutorial_text = StringProperty('')
+    next_text = StringProperty('Next tutorial')
 
 
 class FinishedTutorialsPopup(SingularPopup):
@@ -54,6 +57,7 @@ class FinishedTutorialsPopup(SingularPopup):
 class PlayAgainPopup(SingularPopup):
     ai = BooleanProperty(False)
     winner_text = StringProperty('')
+    next_mode = StringProperty('normal')
 
 
 class Message(Label):
@@ -261,26 +265,42 @@ class Board(Widget):
         # import ipdb
         # ipdb.set_trace()
         mode = self.game_mode
+        print 'mode is', mode
         if mode[:8] == 'tutorial':
             number = int(mode[8:]) + 1
+            if winner == 'bottom':
+                number -= 1
             next_file = 'puzzles/dir01_tutorials/tutorial{}.phut'.format(number)
             next_mode = 'tutorial{}'.format(number)
             print 'next file is', next_file, exists(next_file)
             if exists(next_file):
+                if winner == 'bottom':
+                    winner_text = 'You lose'
+                    tutorial_text = 'Do you want to try again?'
+                    next_text = 'Try again'
+                else:
+                    winner_text = '[color=#dbebc3]You win![/color]'
+                    tutorial_text = 'Tutorial {} complete'.format(number-1)
+                    next_text = 'Next tutorial'
                 NextTutorialPopup(number=str(number-1),
                                   next_file=next_file,
-                                  next_mode=next_mode).open()
+                                  next_mode=next_mode,
+                                  winner_text=winner_text,
+                                  tutorial_text=tutorial_text,
+                                  next_text=next_text).open()
             else:
                 FinishedTutorialsPopup(number=str(number)).open()
         elif mode == 'ainormal':
             winner_text = {
                 'top': '[color=#dbebc3]You win![/color]',
                 'bottom': '[color=#ffcab2]You lose[/color]'}[winner]
-            PlayAgainPopup(ai=True, winner_text=winner_text).open()
+            PlayAgainPopup(ai=True, winner_text=winner_text,
+                           next_mode='ainormal').open()
         else:
             winner_text = '[color=#ffffff]{} player wins[/color]'.format(
                 winner)
-            PlayAgainPopup(ai=False, winner_text=winner_text).open()
+            PlayAgainPopup(ai=False, winner_text=winner_text,
+                           next_mode='normal').open()
 
     def on_touch_mode(self, *args):
         mode = self.touch_mode
@@ -594,6 +614,8 @@ class Board(Widget):
 
     def confirm_speculation(self):
         instructions = self.abstractboard.confirm_speculation()
+        if instructions is None:
+            return
         self.follow_instructions(instructions)
         self.check_for_win()
         self.switch_current_player()

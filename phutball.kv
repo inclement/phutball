@@ -20,14 +20,14 @@
         Label:
             size_hint_y: None
             height: sp(60)
-            text: '[color=#dbebc3]You win![/color]'
+            text: root.winner_text
             markup: True
             halign: 'center'
             font_size: sp(40)
         Label:
             size_hint_y: None
             height: sp(60)
-            text: 'Tutorial {} complete!'.format(root.number)
+            text: root.tutorial_text
             text_size: self.size
             halign: 'center'
             validn: 'middle'
@@ -46,7 +46,7 @@
                 size_hint_x: 0.75
                 size_hint_y: None
                 height: sp(40)
-                text: 'Next tutorial'
+                text: root.next_text
                 on_release: app.manager.new_board(from_file=root.next_file, mode=root.next_mode, force_switch=True); root.dismiss()
 
 <FinishedTutorialsPopup>:
@@ -115,7 +115,7 @@
                 size_hint_y: None
                 height: sp(40)
                 text: 'Play again'
-                on_release: app.manager.new_board(ai=root.ai, force_switch=True); root.dismiss()
+                on_release: app.manager.new_board(ai=root.ai, force_switch=True, mode=root.next_mode); root.dismiss()
 
 
 <RulesScreen>:
