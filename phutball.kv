@@ -127,7 +127,7 @@
             size_hint_y: None
             height: rules.height + sp(60) 
             cols: 1
-            on_touch_down: print 'gl height is', self.height
+            on_touch_down: print('gl height is', self.height)
             Label:
                 size_hint_y: None
                 height: sp(60)
@@ -140,7 +140,7 @@
                 padding_y: sp(15)
                 padding_x: sp(10)
                 text_size: self.width, None
-                on_touch_down: print 'label height is', self.height
+                on_touch_down: print('label height is', self.height)
                 text: rules_text.rules_text
                         
 <Label>:
@@ -334,7 +334,7 @@
 
 <PlayManButton>:
     text: 'Play man'
-    on_active: print 'play man {}'.format(self.active)
+    on_active: print('play man {}'.format(self.active))
     colour_before: 1, 1, 1, 1
     colour_after: 0.8, 0.8, 0.99, 1
     Label:
@@ -547,8 +547,8 @@
     on_pos: self.calculate_lines(); self.reposition_ui_elements()
     on_size: self.calculate_lines(); self.reposition_ui_elements()
     on_grid: self.abstractboard.shape = self.grid
-    on_can_confirm: print 'can confirm {}'.format(self.can_confirm)
-    on_touch_down: print self.abstractboard.ball_coords
+    on_can_confirm: print('can confirm {}'.format(self.can_confirm))
+    on_touch_down: print(self.abstractboard.ball_coords)
     canvas:
         Color:
             rgba: 1, 1, 1, 1
