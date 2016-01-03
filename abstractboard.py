@@ -353,10 +353,10 @@ class AbstractBoard(object):
             'current_player' not in d):
             raise Exception('Not enough information to load.')
 
-        print 'loading from', d
+        print('loading from', d)
         self.shape = tuple(d['shape'])
         self.ball_coords = tuple(d['ball_coords'])
-        print 'ball coords set to', self.ball_coords
+        print('ball coords set to', self.ball_coords)
         self.man_coords = set([tuple(coords) for coords in d['man_coords']])
         self.current_player = d['current_player']
         self.legal_moves = get_legal_moves(

@@ -265,14 +265,14 @@ class Board(Widget):
         # import ipdb
         # ipdb.set_trace()
         mode = self.game_mode
-        print 'mode is', mode
+        print('mode is', mode)
         if mode[:8] == 'tutorial':
             number = int(mode[8:]) + 1
             if winner == 'bottom':
                 number -= 1
             next_file = 'puzzles/dir01_tutorials/tutorial{}.phut'.format(number)
             next_mode = 'tutorial{}'.format(number)
-            print 'next file is', next_file, exists(next_file)
+            print('next file is', next_file, exists(next_file))
             if exists(next_file):
                 if winner == 'bottom':
                     winner_text = 'You lose'
@@ -718,11 +718,11 @@ class Board(Widget):
             self.add_man(coords)
         self.display_legal_moves()
         Clock.schedule_once(self.sync_ball, 0)
-        print 'ab ball_coords are', ab.ball_coords
+        print('ab ball_coords are', ab.ball_coords)
         self.message = ab.message
 
     def sync_ball(self, *args):
-        print 'syncing ab ball_coords are', self.abstractboard.ball_coords
+        print('syncing ab ball_coords are', self.abstractboard.ball_coords)
         self.ball.pos = self.coords_to_pos(self.abstractboard.ball_coords)
 
     def reset(self, *args, **kwargs):
